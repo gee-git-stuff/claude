@@ -1,206 +1,332 @@
 /**
- * Basic tests for LinguaChat engine and language data.
+ * Tests for MealOrganizer modules.
  * Run with: node tests/test.js
  */
 
-const fs = require('fs');
-const vm = require('vm');
-
-// Create a sandbox with browser-like globals
-const sandbox = {
-  window: {
-    SpeechRecognition: null,
-    webkitSpeechRecognition: null,
-    speechSynthesis: {
-      cancel() {},
-      speak() {},
-      getVoices() { return []; },
-      onvoiceschanged: undefined,
-    }
-  },
-  document: {
-    querySelector: () => null,
-    querySelectorAll: () => [],
-  },
-  console,
-  setTimeout,
-  Date,
-  Math,
-  Array,
-  Object,
-  Map,
-  Set,
-  Promise,
-  parseInt,
-  parseFloat,
-  SpeechSynthesisUtterance: function() {
-    this.lang = '';
-    this.rate = 1;
-    this.pitch = 1;
-    this.voice = null;
-    this.onend = null;
-    this.onerror = null;
-  },
-  alert: () => {},
+// Minimal localStorage shim for Node
+const _store = {};
+const localStorage = {
+  getItem: (k) => _store[k] || null,
+  setItem: (k, v) => { _store[k] = v; },
+  removeItem: (k) => { delete _store[k]; },
+  clear: () => { Object.keys(_store).forEach(k => delete _store[k]); },
 };
+global.localStorage = localStorage;
 
-const context = vm.createContext(sandbox);
+// Minimal document shim for escapeHtml
+global.document = { createElement: () => ({ set textContent(v) { this._t = v; }, get innerHTML() { return (this._t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); } }) };
 
-// Load source files in order — they assign to global-scope consts
-['js/languages.js', 'js/engine.js', 'js/speech.js'].forEach(file => {
-  const code = fs.readFileSync(file, 'utf8');
-  vm.runInContext(code, context);
-});
-
-// Extract the modules from the context
-const LanguageData = vm.runInContext('LanguageData', context);
-const LearningEngine = vm.runInContext('LearningEngine', context);
-const Speech = vm.runInContext('Speech', context);
+// Load modules — each depends on prior globals
+const { Storage } = require('../js/storage.js');
+global.Storage = Storage;
+const { Recipes } = require('../js/recipes.js');
+global.Recipes = Recipes;
+const { Meals } = require('../js/meals.js');
+global.Meals = Meals;
+const { Groceries } = require('../js/groceries.js');
+global.Groceries = Groceries;
+const { Prices } = require('../js/prices.js');
+global.Prices = Prices;
+const { Chat } = require('../js/chat.js');
 
 let passed = 0;
 let failed = 0;
 
-function assert(condition, message) {
+function assert(condition, msg) {
   if (condition) {
     passed++;
-    console.log(`  ✓ ${message}`);
+    console.log(`  PASS: ${msg}`);
   } else {
     failed++;
-    console.error(`  ✗ ${message}`);
+    console.error(`  FAIL: ${msg}`);
   }
 }
 
-// === LanguageData Tests ===
-console.log('\nLanguageData:');
+function resetStorage() {
+  localStorage.clear();
+}
 
-assert(LanguageData.LANG_NAMES.en === 'English', 'LANG_NAMES has English');
-assert(LanguageData.LANG_NAMES.es === 'Spanish', 'LANG_NAMES has Spanish');
-assert(LanguageData.LANG_NAMES.ja === 'Japanese', 'LANG_NAMES has Japanese');
+// === Storage Tests ===
+console.log('\n--- Storage ---');
+resetStorage();
+assert(Storage.getRecipes().length === 0, 'starts with empty recipes');
+const r1 = Storage.addRecipe({ name: 'Test Recipe', ingredients: [{ item: 'flour', qty: '2', unit: 'cups' }], category: 'Dinner' });
+assert(r1.id !== undefined, 'addRecipe returns an object with id');
+assert(Storage.getRecipes().length === 1, 'recipe is persisted');
+Storage.updateRecipe(r1.id, { name: 'Updated Recipe' });
+assert(Storage.getRecipes()[0].name === 'Updated Recipe', 'updateRecipe works');
+Storage.deleteRecipe(r1.id);
+assert(Storage.getRecipes().length === 0, 'deleteRecipe removes recipe');
 
-assert(LanguageData.SPEECH_CODES.en === 'en-US', 'Speech code for English');
-assert(LanguageData.SPEECH_CODES.fr === 'fr-FR', 'Speech code for French');
+assert(Array.isArray(Storage.getGroceryList()), 'getGroceryList returns array');
+assert(typeof Storage.getMealPlan() === 'object', 'getMealPlan returns object');
+assert(typeof Storage.getSettings() === 'object', 'getSettings returns object with defaults');
+assert(Storage.getSettings().budget === 150, 'default budget is 150');
 
-const beginnerVocab = LanguageData.getVocabForLevel('beginner');
-assert(beginnerVocab.length > 0, 'Beginner vocab is not empty');
-assert(beginnerVocab[0].en !== undefined, 'Vocab items have English field');
-assert(beginnerVocab[0].es !== undefined, 'Vocab items have Spanish field');
+// Export/Import
+resetStorage();
+Storage.addRecipe({ name: 'Export Test' });
+const exported = Storage.exportAll();
+assert(exported.recipes.length === 1, 'exportAll includes recipes');
+resetStorage();
+Storage.importAll(exported);
+assert(Storage.getRecipes().length === 1, 'importAll restores recipes');
 
-const allVocab = LanguageData.getAllVocab('intermediate');
-assert(allVocab.length > beginnerVocab.length, 'Intermediate includes beginner vocab');
+// === Recipes Tests ===
+console.log('\n--- Recipes ---');
+resetStorage();
+const recipe1 = Recipes.create({ name: 'Pasta Carbonara', ingredients: [{ item: 'pasta', qty: '1', unit: 'lb' }, { item: 'bacon', qty: '4', unit: 'slices' }], category: 'Dinner', tags: ['italian', 'quick'] });
+assert(recipe1.name === 'Pasta Carbonara', 'create returns recipe with name');
+assert(recipe1.timesCooked === 0, 'new recipe has 0 timesCooked');
 
-const advancedVocab = LanguageData.getAllVocab('advanced');
-assert(advancedVocab.length >= allVocab.length, 'Advanced includes all lower levels');
+const recipe2 = Recipes.create({ name: 'Scrambled Eggs', ingredients: [{ item: 'eggs', qty: '3', unit: '' }], category: 'Breakfast' });
+assert(Recipes.getAll().length === 2, 'two recipes exist');
+assert(Recipes.getById(recipe1.id).name === 'Pasta Carbonara', 'getById works');
 
-assert(LanguageData.translate('hello', 'en', 'es') === 'hola', 'Translate hello -> hola');
-assert(LanguageData.translate('water', 'en', 'fr') === 'eau', 'Translate water -> eau');
-assert(LanguageData.translate('nonexistent', 'en', 'es') === null, 'Unknown word returns null');
+const searchResults = Recipes.search('pasta');
+assert(searchResults.length === 1, 'search by name works');
+const searchByTag = Recipes.search('italian');
+assert(searchByTag.length === 1, 'search by tag works');
+const searchByIng = Recipes.search('bacon');
+assert(searchByIng.length === 1, 'search by ingredient works');
 
-const randomVocab = LanguageData.getRandomVocab('beginner', 'en');
-assert(randomVocab !== null, 'Random vocab returns an item');
-assert(randomVocab.en !== undefined, 'Random vocab has en field');
+assert(Recipes.getByCategory('Dinner').length === 1, 'getByCategory works');
+assert(Recipes.getByCategory('Breakfast').length === 1, 'getByCategory for Breakfast');
 
-const categories = LanguageData.getCategories();
-assert(categories.includes('greetings'), 'Categories include greetings');
-assert(categories.includes('food'), 'Categories include food');
-assert(categories.includes('travel'), 'Categories include travel');
+Recipes.markCooked(recipe1.id);
+assert(Recipes.getById(recipe1.id).timesCooked === 1, 'markCooked increments count');
+Recipes.markCooked(recipe1.id);
+assert(Recipes.getById(recipe1.id).timesCooked === 2, 'markCooked increments again');
 
-// === LearningEngine Tests ===
-console.log('\nLearningEngine:');
+Recipes.rate(recipe1.id, 4);
+assert(Recipes.getById(recipe1.id).rating === 4, 'rate sets rating');
+Recipes.rate(recipe1.id, 10);
+assert(Recipes.getById(recipe1.id).rating === 5, 'rate clamps to 5');
 
-vm.runInContext('LearningEngine.init("en", "es", "beginner")', context);
-const initState = vm.runInContext('LearningEngine.getState()', context);
-assert(initState.nativeLang === 'en', 'Init sets native language');
-assert(initState.targetLang === 'es', 'Init sets target language');
-assert(initState.difficulty === 'beginner', 'Init sets difficulty');
-assert(initState.xp === 0, 'Init XP is 0');
-assert(initState.streak === 0, 'Init streak is 0');
+const parsed = Recipes.parseIngredientText('2 cups flour\n1 tsp salt\ngarlic');
+assert(parsed.length === 3, 'parseIngredientText parses 3 lines');
+assert(parsed[0].qty === '2', 'parsed qty');
+assert(parsed[0].unit === 'cups', 'parsed unit');
+assert(parsed[0].item === 'flour', 'parsed item');
+assert(parsed[2].item === 'garlic', 'item without qty/unit');
 
-// Record correct
-const correctResult = vm.runInContext('LearningEngine.recordCorrect("hello")', context);
-assert(correctResult.xp === 10, 'Correct answer gives 10 XP');
-assert(correctResult.streak === 1, 'Streak incremented to 1');
+const parsedRecipe = Recipes.parseRecipeFromText(`My Great Recipe\nServings: 6\nIngredients\n2 cups rice\n1 can beans\nInstructions\nCook the rice.\nAdd the beans.`);
+assert(parsedRecipe.name === 'My Great Recipe', 'parseRecipeFromText extracts name');
+assert(parsedRecipe.servings === 6, 'parseRecipeFromText extracts servings');
+assert(parsedRecipe.ingredients.length === 2, 'parseRecipeFromText extracts ingredients');
 
-vm.runInContext('LearningEngine.recordCorrect("world")', context);
-vm.runInContext('LearningEngine.recordCorrect("test")', context);
-const streakResult = vm.runInContext('LearningEngine.recordCorrect("again")', context);
-assert(streakResult.streak === 4, 'Streak is 4 after 4 correct');
-assert(streakResult.xp > 40, 'Streak bonus XP added');
+Recipes.remove(recipe2.id);
+assert(Recipes.getAll().length === 1, 'remove deletes recipe');
 
-// Record wrong
-const wrongResult = vm.runInContext('LearningEngine.recordWrong("oops")', context);
-assert(wrongResult.streak === 0, 'Wrong answer resets streak');
+// === Meals Tests ===
+console.log('\n--- Meals ---');
+resetStorage();
+Recipes.create({ name: 'Test Dinner', ingredients: [{ item: 'chicken', qty: '2', unit: 'lbs' }], category: 'Dinner', servings: 4 });
+const weekId = Meals.currentWeekId();
+assert(typeof weekId === 'string', 'currentWeekId returns string');
+assert(weekId.match(/^\d{4}-\d{2}-\d{2}$/), 'weekId is date format');
 
-// Quiz generation
-vm.runInContext('LearningEngine.init("en", "es", "beginner")', context);
-const quiz = vm.runInContext('LearningEngine.generateTranslationQuiz()', context);
-assert(quiz !== null, 'Translation quiz generated');
-assert(quiz.question !== undefined, 'Quiz has question');
-assert(quiz.answer !== undefined, 'Quiz has answer');
-assert(quiz.options.length >= 2, 'Quiz has multiple options');
-assert(quiz.options.includes(quiz.answer), 'Options include correct answer');
+const plan = Meals.getCurrentPlan();
+assert(plan.Monday !== undefined, 'plan has Monday');
+assert(plan.Sunday !== undefined, 'plan has Sunday');
+assert(plan.Monday.Dinner === null, 'Monday dinner starts null');
 
-// Listening quiz
-const listenQuiz = vm.runInContext('LearningEngine.generateListeningQuiz()', context);
-assert(listenQuiz !== null, 'Listening quiz generated');
-assert(listenQuiz.isListening === true, 'Listening quiz flagged');
+Meals.setMeal(weekId, 'Monday', 'Dinner', { recipeId: null, name: 'Tacos', servings: 4 });
+const updated = Meals.getPlan(weekId);
+assert(updated.Monday.Dinner.name === 'Tacos', 'setMeal works');
 
-// Speaking challenge
-const speakChallenge = vm.runInContext('LearningEngine.generateSpeakingChallenge()', context);
-assert(speakChallenge !== null, 'Speaking challenge generated');
-assert(speakChallenge.isSpeaking === true, 'Speaking challenge flagged');
-assert(speakChallenge.targetPhrase !== undefined, 'Has target phrase');
-assert(speakChallenge.nativeHint !== undefined, 'Has native hint');
+Meals.removeMeal(weekId, 'Monday', 'Dinner');
+assert(Meals.getPlan(weekId).Monday.Dinner === null, 'removeMeal works');
 
-// Flashcard
-const card = vm.runInContext('LearningEngine.generateFlashcard()', context);
-assert(card !== null, 'Flashcard generated');
-assert(card.front !== undefined, 'Card has front');
-assert(card.back !== undefined, 'Card has back');
+const summary = Meals.getSummary(weekId);
+assert(summary.totalSlots === 28, 'totalSlots is 7 days * 4 slots');
+assert(summary.percentPlanned === 0, '0% when nothing planned');
 
-// Check answer
-vm.runInContext('LearningEngine.init("en", "es", "beginner")', context);
-const quiz2 = vm.runInContext('LearningEngine.generateTranslationQuiz()', context);
-const checkCorrect = vm.runInContext(`LearningEngine.checkAnswer("${quiz2.answer}")`, context);
-assert(checkCorrect.correct === true, 'Correct answer recognized');
+Meals.setMeal(weekId, 'Tuesday', 'Lunch', { recipeId: null, name: 'Salad', servings: 2 });
+const summary2 = Meals.getSummary(weekId);
+assert(summary2.filledSlots === 1, 'filledSlots counts correctly');
 
-const quiz3 = vm.runInContext('LearningEngine.generateTranslationQuiz()', context);
-const checkWrong = vm.runInContext('LearningEngine.checkAnswer("definitely_wrong_answer_xyz")', context);
-assert(checkWrong.correct === false, 'Wrong answer recognized');
-assert(checkWrong.correctAnswer !== undefined, 'Wrong answer shows correct');
+assert(Meals.DAYS.length === 7, 'DAYS has 7 entries');
+assert(Meals.SLOTS.length === 4, 'SLOTS has 4 entries');
 
-// Levenshtein distance
-const lev = LearningEngine.levenshtein;
-assert(lev('hello', 'hello') === 0, 'Levenshtein same string = 0');
-assert(lev('hello', 'hallo') === 1, 'Levenshtein 1 char diff = 1');
-assert(lev('', 'abc') === 3, 'Levenshtein empty to abc = 3');
-assert(lev('kitten', 'sitting') === 3, 'Levenshtein kitten/sitting = 3');
+// Test ingredient aggregation
+resetStorage();
+const chickenRecipe = Recipes.create({ name: 'Chicken Rice', ingredients: [{ item: 'chicken', qty: '1', unit: 'lb' }, { item: 'rice', qty: '2', unit: 'cups' }], servings: 4 });
+const wk = Meals.currentWeekId();
+Meals.setMeal(wk, 'Monday', 'Dinner', { recipeId: chickenRecipe.id, name: 'Chicken Rice', servings: 4 });
+Meals.setMeal(wk, 'Wednesday', 'Dinner', { recipeId: chickenRecipe.id, name: 'Chicken Rice', servings: 4 });
+const ings = Meals.getIngredientsForWeek(wk);
+const chickenIng = ings.find(i => i.item === 'chicken');
+assert(chickenIng.qty === 2, 'aggregates same ingredient across meals');
 
-// Chat processing
-vm.runInContext('LearningEngine.init("en", "es", "beginner")', context);
-const chatHello = vm.runInContext('LearningEngine.processChat("hello")', context);
-assert(chatHello.text.includes('hola'), 'Chat translates hello to hola');
+// === Groceries Tests ===
+console.log('\n--- Groceries ---');
+resetStorage();
+assert(Groceries.getList().length === 0, 'starts with empty grocery list');
 
-const chatHelp = vm.runInContext('LearningEngine.processChat("help")', context);
-assert(chatHelp.text.includes('quiz'), 'Help text mentions quiz');
+Groceries.addItem({ item: 'Milk', qty: '1', unit: 'gallon' });
+assert(Groceries.getList().length === 1, 'addItem adds to list');
+assert(Groceries.getList()[0].aisle === 'Dairy', 'auto-assigns Dairy aisle for milk');
 
-const chatQuiz = vm.runInContext('LearningEngine.processChat("quiz me")', context);
-assert(chatQuiz.quiz !== undefined || chatQuiz.text.includes('What is'), 'Quiz me starts a quiz');
+Groceries.addItem({ item: 'Chicken Breast', qty: '2', unit: 'lbs' });
+assert(Groceries.getList()[1].aisle === 'Meat & Seafood', 'auto-assigns Meat aisle for chicken');
 
-const chatStats = vm.runInContext('LearningEngine.processChat("progress")', context);
-assert(chatStats.text.includes('XP'), 'Progress shows XP');
+Groceries.addItem({ item: 'Broccoli' });
+assert(Groceries.guessAisle('Broccoli') === 'Produce', 'guessAisle for broccoli');
 
-// === Speech Module Tests ===
-console.log('\nSpeech:');
+Groceries.addItem({ item: 'Something Random' });
+assert(Groceries.guessAisle('Something Random') === 'Other', 'unknown items get Other aisle');
 
-assert(typeof Speech.isRecognitionSupported === 'function', 'Has isRecognitionSupported');
-assert(typeof Speech.isSynthesisSupported === 'function', 'Has isSynthesisSupported');
-assert(typeof Speech.speak === 'function', 'Has speak function');
-assert(typeof Speech.startListening === 'function', 'Has startListening function');
-assert(typeof Speech.stopListening === 'function', 'Has stopListening function');
+// Duplicate aggregation
+Groceries.addItem({ item: 'Milk', qty: '2', unit: 'gallon' });
+assert(Groceries.getList().length === 4, 'duplicate does not create new entry — aggregates qty');
+const milkItem = Groceries.getList().find(i => i.item === 'Milk');
+assert(milkItem.qty === 3, 'aggregated qty is 3');
 
-// Summary
-console.log(`\n${'='.repeat(40)}`);
-console.log(`Results: ${passed} passed, ${failed} failed`);
-console.log(`${'='.repeat(40)}\n`);
+// Toggle & clear
+const firstId = Groceries.getList()[0].id;
+Groceries.toggleItem(firstId);
+assert(Groceries.getList().find(i => i.id === firstId).checked === true, 'toggleItem checks item');
+Groceries.toggleItem(firstId);
+assert(Groceries.getList().find(i => i.id === firstId).checked === false, 'toggleItem unchecks item');
 
+Groceries.toggleItem(firstId);
+Groceries.clearChecked();
+assert(Groceries.getList().find(i => i.id === firstId) === undefined, 'clearChecked removes checked');
+
+// Grouped by aisle
+const grouped = Groceries.getByAisle();
+assert(typeof grouped === 'object', 'getByAisle returns object');
+
+const stats = Groceries.getStats();
+assert(stats.total > 0, 'getStats returns total');
+
+// Common items
+const common = Groceries.getCommonItems();
+assert(common.length > 0, 'common items tracked');
+assert(common[0].count >= 1, 'common items have count');
+
+// Generate from meal plan
+resetStorage();
+const genRecipe = Recipes.create({ name: 'Gen Test', ingredients: [{ item: 'tomato', qty: '3', unit: '' }], servings: 2 });
+Meals.setMeal(Meals.currentWeekId(), 'Monday', 'Dinner', { recipeId: genRecipe.id, name: 'Gen Test', servings: 2 });
+const genList = Groceries.generateFromMealPlan();
+assert(genList.length === 1, 'generateFromMealPlan creates list');
+assert(genList[0].item === 'tomato', 'generated item is correct');
+
+Groceries.clearAll();
+assert(Groceries.getList().length === 0, 'clearAll empties list');
+
+// === Prices Tests ===
+console.log('\n--- Prices ---');
+resetStorage();
+Prices.logPrice('Milk', 3.99, 'Walmart');
+Prices.logPrice('Milk', 4.49, 'Target');
+Prices.logPrice('Milk', 3.79, 'Aldi');
+
+const milkStats = Prices.getStats('Milk');
+assert(milkStats !== null, 'getStats returns data');
+assert(milkStats.entries === 3, '3 price entries');
+assert(milkStats.min === 3.79, 'min price is 3.79');
+assert(milkStats.max === 4.49, 'max price is 4.49');
+assert(milkStats.cheapestStore === 'Aldi', 'cheapest store is Aldi');
+assert(typeof milkStats.average === 'number', 'average is number');
+
+const tracked = Prices.getAllTracked();
+assert(tracked.length === 1, 'one tracked item');
+
+Prices.addSale({ item: 'Eggs', salePrice: 2.49, store: 'Kroger', validUntil: '2099-12-31' });
+const sales = Prices.getActiveSales();
+assert(sales.length === 1, 'one active sale');
+assert(sales[0].item === 'Eggs', 'sale item is Eggs');
+
+// Sale alerts with matching grocery item
+Groceries.addItem({ item: 'Eggs', source: 'test' });
+const alerts = Prices.getSaleAlerts();
+assert(alerts.length === 1, 'sale alert for matching grocery item');
+assert(alerts[0].sale.store === 'Kroger', 'alert has correct store');
+
+Prices.removeSale(sales[0].id);
+assert(Prices.getActiveSales().length === 0, 'removeSale works');
+
+const spending = Prices.getSpendingSummary();
+assert(spending.itemCount >= 3, 'spending summary counts entries');
+
+assert(Prices.getStats('Nonexistent') === null, 'getStats returns null for unknown');
+
+// === Chat Tests ===
+console.log('\n--- Chat ---');
+resetStorage();
+Recipes.create({ name: 'Grilled Salmon', ingredients: [{ item: 'salmon', qty: '1', unit: 'lb' }], category: 'Dinner', tags: ['healthy'] });
+
+let res = Chat.process('help');
+assert(res.reply.includes('Meal Planning'), 'help shows Meal Planning');
+
+res = Chat.process('plan grilled salmon for monday dinner');
+assert(res.reply.includes('Grilled Salmon'), 'plan command finds recipe');
+assert(res.action === 'refreshMeals', 'plan returns refreshMeals action');
+
+res = Chat.process('show this week\'s plan');
+assert(res.reply.includes('Monday'), 'show plan includes Monday');
+assert(res.reply.includes('Grilled Salmon'), 'show plan includes planned meal');
+
+res = Chat.process('clear monday dinner');
+assert(res.reply.includes('Cleared'), 'clear meal command works');
+
+res = Chat.process('show recipes');
+assert(res.reply.includes('Grilled Salmon'), 'show recipes lists recipe');
+
+res = Chat.process('search recipes healthy');
+assert(res.reply.includes('Grilled Salmon'), 'search by tag works');
+
+res = Chat.process('show recipe grilled salmon');
+assert(res.reply.includes('salmon'), 'show recipe detail works');
+
+res = Chat.process('add bananas to grocery list');
+assert(res.reply.includes('bananas'), 'add to grocery list works');
+assert(res.action === 'refreshGroceries', 'add returns refreshGroceries action');
+
+res = Chat.process('show grocery list');
+assert(res.reply.includes('bananas'), 'show grocery list has added item');
+
+res = Chat.process('check off bananas');
+assert(res.reply.includes('checked'), 'check off command works');
+
+res = Chat.process('log price milk 3.99 at walmart');
+assert(res.reply.includes('milk'), 'log price command works');
+
+res = Chat.process('sale eggs 1.99 at kroger until 2099-12-31');
+assert(res.reply.includes('eggs'), 'add sale command works');
+
+res = Chat.process('show sales');
+assert(res.reply.includes('eggs'), 'show sales works');
+
+res = Chat.process('price history milk');
+assert(res.reply.includes('3.99'), 'price history shows logged price');
+
+res = Chat.process('stats');
+assert(res.reply.includes('Total logged'), 'stats command works');
+
+res = Chat.process('suggest');
+assert(res.reply.includes('Grilled Salmon'), 'suggest returns recipes');
+
+res = Chat.process('import recipe Test Import\nIngredients\n2 cups flour\n1 egg\nInstructions\nMix together');
+assert(res.reply.includes('Imported'), 'import recipe works');
+
+res = Chat.process('delete recipe test import');
+assert(res.reply.includes('Deleted'), 'delete recipe works');
+
+res = Chat.process('');
+assert(res.reply.includes('help'), 'empty input prompts help');
+
+res = Chat.process('gibberish xyz');
+assert(res.reply.includes("didn't understand"), 'unknown input gets fallback');
+
+res = Chat.process('show common items');
+assert(res.reply !== undefined, 'common items command works');
+
+// === Final Summary ===
+console.log(`\n========================================`);
+console.log(`Total: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`);
+console.log(`========================================`);
 process.exit(failed > 0 ? 1 : 0);

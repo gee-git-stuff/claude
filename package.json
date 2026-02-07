@@ -1,11 +1,11 @@
 {
-  "name": "lingua-chat",
+  "name": "meal-grocery-organizer",
   "version": "1.0.0",
-  "description": "Interactive language learning chatbot with real-time audio translation and adaptive learning",
+  "description": "Smart meal planner and grocery organizer with conversational interface, recipe archive, and price tracking",
   "scripts": {
     "start": "npx serve .",
     "test": "node tests/test.js"
   },
-  "keywords": ["language-learning", "chatbot", "speech-recognition", "translation"],
+  "keywords": ["meal-planning", "grocery-list", "recipes", "price-tracking"],
   "license": "MIT"
 }
