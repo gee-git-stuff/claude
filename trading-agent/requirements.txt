@@ -1,0 +1,6 @@
+anthropic>=0.40.0
+python-telegram-bot>=20.7
+yfinance>=0.2.40
+feedparser>=6.0.11
+robin-stocks>=3.0.0
+python-dotenv>=1.0.0
