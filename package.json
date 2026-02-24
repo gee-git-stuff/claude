@@ -1,11 +1,19 @@
 {
-  "name": "lingua-chat",
+  "name": "small-business-store",
   "version": "1.0.0",
-  "description": "Interactive language learning chatbot with real-time audio translation and adaptive learning",
+  "description": "Modern small business sales website with inventory and payment handling",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve .",
+    "start": "node server.js",
+    "dev": "node server.js",
     "test": "node tests/test.js"
   },
-  "keywords": ["language-learning", "chatbot", "speech-recognition", "translation"],
+  "dependencies": {
+    "express": "^4.18.2",
+    "stripe": "^14.21.0",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5"
+  },
+  "keywords": ["ecommerce", "sales", "stripe", "small-business"],
   "license": "MIT"
 }

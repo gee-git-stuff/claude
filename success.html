@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — My Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .success-page {
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+    }
+    .success-icon {
+      width: 72px;
+      height: 72px;
+      background: var(--accent-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .success-icon svg { color: var(--accent); }
+    .success-page h1 { margin-bottom: 12px; }
+    .success-page p  { color: var(--text-muted); max-width: 420px; margin-inline: auto; }
+    .success-actions { margin-top: 32px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      transition: background .18s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <nav class="nav">
+      <div class="container nav-inner">
+        <a href="index.html" class="nav-logo" id="nav-store-name">My Store</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="success-page container">
+      <div>
+        <div class="success-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </div>
+        <h1>Order Confirmed!</h1>
+        <p>Thank you for your purchase. You'll receive a confirmation email shortly.</p>
+        <div class="success-actions">
+          <a href="index.html" class="btn-primary">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>My Store &mdash; Payments secured by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a></p>
+    </div>
+  </footer>
+
+  <script src="js/inventory.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    // Clear cart after successful purchase
+    localStorage.removeItem("store_cart");
+    updateCartBadge();
+  </script>
+</body>
+</html>
