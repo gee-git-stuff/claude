@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlipperAI — House Flipping Helper</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0f1117" />
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="logo">🏠</span>
+      <span class="logo-text">Flipper<span>AI</span></span>
+    </div>
+
+    <button class="new-btn" id="newPropertyBtn">+ New Property</button>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Navigation</div>
+      <button class="sidebar-btn active" data-view="chat" id="navChat">
+        <span class="icon">💬</span> AI Advisor
+      </button>
+      <button class="sidebar-btn" data-view="analyzer" id="navAnalyzer">
+        <span class="icon">📊</span> Deal Analyzer
+      </button>
+      <button class="sidebar-btn" data-view="repairs" id="navRepairs">
+        <span class="icon">🔨</span> Repair Estimator
+      </button>
+      <button class="sidebar-btn" data-view="closing" id="navClosing">
+        <span class="icon">📝</span> Closing Costs
+      </button>
+      <button class="sidebar-btn" data-view="documents" id="navDocuments">
+        <span class="icon">📁</span> Documents
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Properties</div>
+    </div>
+    <div class="property-list" id="propertyList">
+      <div style="padding:8px;font-size:13px;color:var(--text-muted)">No properties yet.</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="topbar-title" id="topbarTitle">AI Advisor</div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="clearChatBtn" title="New conversation">✏️ New Chat</button>
+      </div>
+    </div>
+
+    <!-- CHAT VIEW -->
+    <div id="viewChat" class="content">
+      <div class="chat-panel">
+        <div class="chat-messages" id="chatMessages">
+          <!-- Welcome message -->
+          <div class="message assistant">
+            <div class="avatar assistant">🏠</div>
+            <div class="message-bubble">
+              <strong>Welcome to FlipperAI!</strong><br><br>
+              I'm your AI advisor for house flipping and real estate investment. I can help you:
+              <ul>
+                <li>Analyze deals and calculate ROI</li>
+                <li>Estimate repair and renovation costs</li>
+                <li>Walk you through closing costs and fees</li>
+                <li>Explain the home buying process step by step</li>
+                <li>Review documents you upload (contracts, inspection reports, contractor bids)</li>
+              </ul>
+              What would you like to explore? You can start by describing a property you're analyzing, or ask me anything about house flipping.
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="chat-hints" id="chatHints">
+            <button class="hint-chip" data-hint="Explain the 70% rule for house flipping">70% rule</button>
+            <button class="hint-chip" data-hint="What are typical closing costs for a buyer?">Closing costs</button>
+            <button class="hint-chip" data-hint="How do I estimate ARV for a property?">Estimate ARV</button>
+            <button class="hint-chip" data-hint="What should I look for in a home inspection?">Inspection tips</button>
+            <button class="hint-chip" data-hint="Explain hard money loans for house flipping">Hard money loans</button>
+          </div>
+          <div class="chat-input-row">
+            <textarea id="chatInput" rows="1" placeholder="Ask anything about house flipping..."></textarea>
+            <button class="send-btn" id="sendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEAL ANALYZER VIEW -->
+    <div id="viewAnalyzer" class="content" style="display:none">
+      <div class="panel">
+        <div class="card">
+          <div class="card-title">Deal Inputs</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Purchase Price ($)</label>
+              <input type="number" id="da_purchase" placeholder="e.g. 150000" />
+            </div>
+            <div class="form-group">
+              <label>Repair Costs ($)</label>
+              <input type="number" id="da_repairs" placeholder="e.g. 35000" />
+            </div>
+            <div class="form-group">
+              <label>After Repair Value — ARV ($)</label>
+              <input type="number" id="da_arv" placeholder="e.g. 250000" />
+            </div>
+            <div class="form-group">
+              <label>Holding Period (months)</label>
+              <input type="number" id="da_holding" value="6" min="1" max="36" />
+            </div>
+            <div class="form-group">
+              <label>Monthly Holding Cost ($)</label>
+              <input type="number" id="da_monthly" value="1500" placeholder="taxes + insurance + utilities" />
+            </div>
+            <div class="form-group">
+              <label>Loan Amount ($) — 0 if cash</label>
+              <input type="number" id="da_loan" value="0" placeholder="0 for all cash" />
+            </div>
+          </div>
+          <button class="primary-btn" id="analyzeDealBtn">Analyze Deal</button>
+        </div>
+
+        <div id="dealResults" style="display:none">
+          <div id="dealScoreBlock" class="card"></div>
+          <div class="card">
+            <div class="card-title">Return on Investment</div>
+            <div class="stats-grid" id="roiStats"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Full Breakdown</div>
+            <div id="roiBreakdown"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPAIR ESTIMATOR VIEW -->
+    <div id="viewRepairs" class="content" style="display:none">
+      <div class="panel">
+        <div class="card">
+          <div class="card-title">Scope of Work</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Square Footage</label>
+              <input type="number" id="rep_sqft" value="1500" />
+            </div>
+            <div class="form-group">
+              <label>Kitchen Remodel</label>
+              <select id="rep_kitchen">
+                <option value="">None</option>
+                <option value="light">Light (paint, hardware)</option>
+                <option value="mid">Mid (cabinets + counters)</option>
+                <option value="full">Full gut remodel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Bathrooms to Remodel</label>
+              <input type="number" id="rep_baths" value="0" min="0" max="5" />
+            </div>
+            <div class="form-group">
+              <label>Windows to Replace</label>
+              <input type="number" id="rep_windows_count" value="0" min="0" />
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px" id="repCheckboxes">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_roof" /> Roof Replacement
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_hvac" /> HVAC Replacement
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_flooring" /> New Flooring
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_paint" /> Interior Paint
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_windows" /> Window Replacement
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_electrical" /> Electrical Update
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_plumbing" /> Plumbing Update
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_foundation" /> Foundation Repair
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="rep_landscaping" /> Landscaping
+            </label>
+          </div>
+          <button class="primary-btn" id="estimateRepairsBtn">Estimate Costs</button>
+        </div>
+
+        <div id="repairResults" style="display:none">
+          <div class="card">
+            <div class="card-title">Repair Cost Estimate</div>
+            <div id="repairBreakdown"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLOSING COSTS VIEW -->
+    <div id="viewClosing" class="content" style="display:none">
+      <div class="panel">
+        <div class="card">
+          <div class="card-title">Closing Cost Calculator</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Purchase / Sale Price ($)</label>
+              <input type="number" id="cc_price" placeholder="e.g. 200000" />
+            </div>
+            <div class="form-group">
+              <label>State</label>
+              <input type="text" id="cc_state" placeholder="e.g. CA, TX, NY" maxlength="2" />
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <select id="cc_role">
+                <option value="buyer">Buyer</option>
+                <option value="seller">Seller</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Loan Amount ($) — 0 if cash</label>
+              <input type="number" id="cc_loan" value="0" />
+            </div>
+          </div>
+          <button class="primary-btn" id="calcClosingBtn">Calculate</button>
+        </div>
+
+        <div id="closingResults" style="display:none">
+          <div class="card">
+            <div class="card-title">Closing Cost Breakdown</div>
+            <div id="closingBreakdown"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS VIEW -->
+    <div id="viewDocuments" class="content" style="display:none">
+      <div class="panel">
+        <label class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📄</div>
+          <div class="upload-label">Drop files here or click to upload</div>
+          <div class="upload-sub">PDF, TXT, CSV, MD — contracts, inspection reports, bids, closing docs</div>
+          <input type="file" id="fileInput" multiple accept=".pdf,.txt,.csv,.md" />
+        </label>
+
+        <div id="uploadProgress" style="display:none;margin-bottom:12px;">
+          <div style="font-size:13px;color:var(--text-muted)">⏳ Processing document...</div>
+        </div>
+
+        <div class="doc-list" id="docList">
+          <div style="color:var(--text-muted);font-size:14px;text-align:center;padding:20px">No documents uploaded yet.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.main -->
+</div><!-- /.app -->
+
+<!-- NEW PROPERTY MODAL -->
+<div class="modal-overlay hidden" id="propertyModal">
+  <div class="modal">
+    <div class="modal-title">Add Property</div>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Property Name / Nickname *</label>
+        <input type="text" id="pm_name" placeholder="e.g. 123 Main St Flip" />
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Address</label>
+        <input type="text" id="pm_address" placeholder="Street address" />
+      </div>
+      <div class="form-group">
+        <label>Purchase Price ($)</label>
+        <input type="number" id="pm_purchase" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label>ARV ($)</label>
+        <input type="number" id="pm_arv" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label>Repair Budget ($)</label>
+        <input type="number" id="pm_repairs" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="pm_status">
+          <option value="analyzing">Analyzing</option>
+          <option value="active">Active Flip</option>
+          <option value="sold">Sold</option>
+          <option value="passed">Passed</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" id="cancelPropertyModal">Cancel</button>
+      <button class="primary-btn" id="savePropertyBtn">Add Property</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
