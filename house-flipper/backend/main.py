@@ -11,7 +11,13 @@ from pydantic import BaseModel
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+# Try multiple encodings — Windows PowerShell often saves .env as UTF-16
+for _enc in ('utf-8-sig', 'utf-16', 'utf-8'):
+    try:
+        load_dotenv(encoding=_enc)
+        break
+    except (UnicodeDecodeError, Exception):
+        continue
 
 import database as db
 import agent
