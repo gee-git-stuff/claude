@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — My Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <!-- ===== LOGIN ===== -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h1>Store Admin</h1>
+      <p class="login-sub">Enter your admin password to continue.</p>
+      <form id="login-form" autocomplete="off">
+        <div class="form-field">
+          <label for="password-input">Password</label>
+          <input type="password" id="password-input" placeholder="Admin password" autofocus>
+        </div>
+        <div id="login-error" class="field-error hidden"></div>
+        <button type="submit" class="btn-primary" id="login-btn">Log In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN PANEL ===== -->
+  <div id="admin-panel" class="hidden">
+
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <div class="admin-logo">
+          <span id="admin-store-name">My Store</span>
+          <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="admin-tabs" role="tablist">
+          <button class="admin-tab active" data-tab="products" role="tab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            </svg>
+            Products
+          </button>
+          <button class="admin-tab" data-tab="design" role="tab">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+            </svg>
+            Design
+          </button>
+        </nav>
+        <div class="admin-header-actions">
+          <a href="/" target="_blank" class="btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            View Store
+          </a>
+          <button id="logout-btn" class="btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Log Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+
+      <!-- ===== PRODUCTS TAB ===== -->
+      <div id="tab-products" class="admin-tab-content active">
+        <div class="tab-header">
+          <div>
+            <h2>Products</h2>
+            <p class="tab-sub" id="product-count-label">0 products</p>
+          </div>
+          <button class="btn-primary" id="add-product-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Product
+          </button>
+        </div>
+
+        <div class="products-table-wrap">
+          <table class="products-table" id="products-table">
+            <thead>
+              <tr>
+                <th style="width:60px"></th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Featured</th>
+                <th style="width:120px"></th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <!-- Rendered by admin.js -->
+            </tbody>
+          </table>
+          <div id="products-empty" class="empty-table hidden">
+            <p>No products yet. Click <strong>Add Product</strong> to get started.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DESIGN TAB ===== -->
+      <div id="tab-design" class="admin-tab-content hidden">
+        <div class="tab-header">
+          <div>
+            <h2>Design Settings</h2>
+            <p class="tab-sub">Changes apply instantly when you save.</p>
+          </div>
+          <button class="btn-primary" id="save-design-btn">Save Changes</button>
+        </div>
+
+        <div class="design-grid">
+
+          <!-- Store Info -->
+          <div class="design-card">
+            <h3>Store Info</h3>
+            <div class="form-field">
+              <label for="cfg-name">Store Name</label>
+              <input type="text" id="cfg-name" placeholder="My Store">
+            </div>
+            <div class="form-field">
+              <label for="cfg-tagline">Tagline</label>
+              <input type="text" id="cfg-tagline" placeholder="Quality goods, delivered fast.">
+            </div>
+            <div class="form-field">
+              <label for="cfg-eyebrow">Hero Eyebrow Text <span class="label-hint">(small text above the title)</span></label>
+              <input type="text" id="cfg-eyebrow" placeholder="New Arrivals">
+            </div>
+            <div class="form-field">
+              <label for="cfg-currency">Currency Symbol</label>
+              <input type="text" id="cfg-currency" placeholder="$" style="max-width:80px">
+            </div>
+          </div>
+
+          <!-- Colors -->
+          <div class="design-card">
+            <h3>Brand Colors</h3>
+            <p class="design-hint">These control buttons, links, badges, and highlights across the whole site.</p>
+            <div class="color-fields">
+              <div class="form-field">
+                <label for="cfg-accent">Primary Color</label>
+                <div class="color-input-wrap">
+                  <input type="color" id="cfg-accent-picker" value="#6c63ff" class="color-picker">
+                  <input type="text"  id="cfg-accent"        value="#6c63ff" class="color-hex" placeholder="#6c63ff" maxlength="7">
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="cfg-accent-dark">Hover / Dark Color</label>
+                <div class="color-input-wrap">
+                  <input type="color" id="cfg-accent-dark-picker" value="#4b44cc" class="color-picker">
+                  <input type="text"  id="cfg-accent-dark"        value="#4b44cc" class="color-hex" placeholder="#4b44cc" maxlength="7">
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="cfg-accent-light">Light / Background Tint</label>
+                <div class="color-input-wrap">
+                  <input type="color" id="cfg-accent-light-picker" value="#ede9ff" class="color-picker">
+                  <input type="text"  id="cfg-accent-light"        value="#ede9ff" class="color-hex" placeholder="#ede9ff" maxlength="7">
+                </div>
+              </div>
+            </div>
+            <div class="color-preview" id="color-preview">
+              <button class="preview-btn" id="preview-btn-sample">Buy Now</button>
+              <span class="preview-badge" id="preview-badge-sample">Featured</span>
+              <a class="preview-link" id="preview-link-sample">View details</a>
+            </div>
+          </div>
+
+          <!-- CSS tip -->
+          <div class="design-card design-card-tip">
+            <h3>More Design Control</h3>
+            <p>All spacing, border radii, shadows, and fonts live in <code>css/style.css</code> under the <code>:root</code> block at the top. Edit that file to fully customize the look.</p>
+            <p style="margin-top:10px">For example, to change the card corner rounding:</p>
+            <pre class="code-block">:root {
+  --radius: 12px;   /* cards */
+  --radius-sm: 8px; /* buttons */
+}</pre>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== PRODUCT MODAL ===== -->
+  <div id="product-modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+    <div class="modal-wrap">
+      <button class="btn-close" id="product-modal-close" aria-label="Close">&times;</button>
+      <div class="modal admin-modal">
+        <div class="modal-body">
+          <h2 id="product-modal-title">Add Product</h2>
+          <form id="product-form" class="product-form" novalidate>
+            <input type="hidden" id="product-id">
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="pf-name">Name <span class="required">*</span></label>
+                <input type="text" id="pf-name" required placeholder="Product name">
+              </div>
+              <div class="form-field" style="max-width:180px">
+                <label for="pf-category">Category <span class="required">*</span></label>
+                <input type="text" id="pf-category" required placeholder="e.g. Kitchen" list="category-list">
+                <datalist id="category-list"></datalist>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="pf-description">Short Description <span class="required">*</span> <span class="label-hint">(shown on product card)</span></label>
+              <textarea id="pf-description" rows="2" required placeholder="One or two sentences about the product."></textarea>
+            </div>
+
+            <div class="form-field">
+              <label for="pf-details">Full Details <span class="label-hint">(shown in the product popup)</span></label>
+              <textarea id="pf-details" rows="3" placeholder="Materials, dimensions, care instructions..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="pf-price">Price <span class="required">*</span></label>
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix" id="pf-currency-symbol">$</span>
+                  <input type="number" id="pf-price" min="0.01" step="0.01" required placeholder="29.99">
+                </div>
+              </div>
+              <div class="form-field">
+                <label for="pf-stock">Stock Quantity</label>
+                <input type="number" id="pf-stock" min="0" placeholder="e.g. 20">
+                <label class="checkbox-label" style="margin-top:8px">
+                  <input type="checkbox" id="pf-unlimited"> Unlimited stock
+                </label>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="pf-image">Image URL</label>
+              <input type="url" id="pf-image" placeholder="https://...">
+              <div class="image-preview-wrap">
+                <img id="pf-image-preview" class="image-preview hidden" src="" alt="Preview">
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="pf-tags">Tags <span class="label-hint">(comma-separated, used for search)</span></label>
+              <input type="text" id="pf-tags" placeholder="bag, canvas, accessories">
+            </div>
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="pf-featured"> Mark as Featured
+              <span class="label-hint">(shows first with a badge)</span>
+            </label>
+
+            <div id="product-form-error" class="field-error hidden"></div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-ghost" id="cancel-product-btn">Cancel</button>
+              <button type="submit" class="btn-primary" id="save-product-btn">Save Product</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="js/inventory.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

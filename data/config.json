@@ -1,0 +1,10 @@
+{
+  "name": "My Store",
+  "tagline": "Quality goods, delivered fast.",
+  "heroEyebrow": "New Arrivals",
+  "currency": "usd",
+  "currencySymbol": "$",
+  "accentColor": "#6c63ff",
+  "accentDark": "#4b44cc",
+  "accentLight": "#ede9ff"
+}

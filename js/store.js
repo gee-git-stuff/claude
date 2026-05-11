@@ -1,8 +1,23 @@
 /**
- * store.js — core store logic
- * Handles: branding, product rendering, filtering, searching,
- *           the product modal, and the cart (via localStorage).
+ * store.js — core store logic.
+ * Loads config and products from the API, then renders the storefront.
  */
+
+// ── Data loading ──────────────────────────────────────────────
+async function loadStoreData() {
+  try {
+    const [configRes, productsRes] = await Promise.all([
+      fetch("/api/config"),
+      fetch("/api/products"),
+    ]);
+    window.STORE_CONFIG = await configRes.json();
+    window.PRODUCTS     = await productsRes.json();
+  } catch (err) {
+    console.error("Failed to load store data:", err);
+    window.STORE_CONFIG = window.STORE_CONFIG || {};
+    window.PRODUCTS     = window.PRODUCTS     || [];
+  }
+}
 
 // ── Cart helpers ──────────────────────────────────────────────
 const CART_KEY = "store_cart";
@@ -17,7 +32,7 @@ function cartSave(cart) {
 }
 
 function cartAdd(productId, qty = 1) {
-  const cart = cartLoad();
+  const cart     = cartLoad();
   const existing = cart.find((i) => i.id === productId);
   if (existing) {
     existing.qty += qty;
@@ -33,8 +48,9 @@ function cartItemCount() {
 }
 
 function updateCartBadge() {
-  const badges = document.querySelectorAll("#cart-count");
-  badges.forEach((b) => (b.textContent = cartItemCount()));
+  document.querySelectorAll("#cart-count").forEach((b) => {
+    b.textContent = cartItemCount();
+  });
 }
 
 // ── Toast notifications ───────────────────────────────────────
@@ -50,43 +66,39 @@ function showToast(message, type = "") {
 
 // ── Branding ──────────────────────────────────────────────────
 function applyBranding() {
-  // Apply accent color from STORE_CONFIG
-  document.documentElement.style.setProperty("--accent", STORE_CONFIG.accentColor);
-  document.documentElement.style.setProperty("--accent-dark", STORE_CONFIG.accentDark);
+  const cfg = window.STORE_CONFIG || {};
 
-  // Lighten accent for light variant (rough approximation via opacity overlay)
-  const el = document.getElementById("nav-store-name");
-  if (el) el.textContent = STORE_CONFIG.name;
+  if (cfg.accentColor) document.documentElement.style.setProperty("--accent",       cfg.accentColor);
+  if (cfg.accentDark)  document.documentElement.style.setProperty("--accent-dark",  cfg.accentDark);
+  if (cfg.accentLight) document.documentElement.style.setProperty("--accent-light", cfg.accentLight);
 
-  const title = document.getElementById("page-title");
-  if (title) title.textContent = STORE_CONFIG.name;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
+  set("nav-store-name", cfg.name);
+  set("hero-title",     cfg.name);
+  set("hero-tagline",   cfg.tagline);
+  set("hero-eyebrow",   cfg.heroEyebrow);
 
-  const heroTitle = document.getElementById("hero-title");
-  if (heroTitle) heroTitle.textContent = STORE_CONFIG.name;
+  if (cfg.name) {
+    const titleEl = document.getElementById("page-title");
+    if (titleEl) titleEl.textContent = cfg.name;
 
-  const heroTagline = document.getElementById("hero-tagline");
-  if (heroTagline) heroTagline.textContent = STORE_CONFIG.tagline;
-
-  const footerText = document.getElementById("footer-text");
-  if (footerText)
-    footerText.innerHTML = `${STORE_CONFIG.name} &mdash; Payments secured by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>`;
+    const footerEl = document.getElementById("footer-text");
+    if (footerEl)
+      footerEl.innerHTML = `${escHtml(cfg.name)} &mdash; Payments secured by <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>`;
+  }
 }
 
-// ── Product card builder ──────────────────────────────────────
+// ── Product card ──────────────────────────────────────────────
 function buildCard(product) {
   const inStock = isInStock(product);
-  const card = document.createElement("div");
+  const card    = document.createElement("div");
   card.className = `product-card${product.featured ? " featured" : ""}`;
   card.setAttribute("role", "listitem");
   card.dataset.id = product.id;
 
-  // Use emoji placeholder if no image URL provided
-  const imgSrc = product.image.startsWith("http")
-    ? product.image
-    : "";
-  const imgContent = imgSrc
-    ? `<img src="${imgSrc}" alt="${escHtml(product.name)}" loading="lazy">`
-    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;">${product.image}</div>`;
+  const imgContent = product.image && product.image.startsWith("http")
+    ? `<img src="${escHtml(product.image)}" alt="${escHtml(product.name)}" loading="lazy">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;">${escHtml(product.image || "")}</div>`;
 
   card.innerHTML = `
     <div class="card-image-wrap">
@@ -107,12 +119,10 @@ function buildCard(product) {
     </div>
   `;
 
-  // Click card body → open modal
   card.addEventListener("click", (e) => {
     if (!e.target.closest(".btn-add")) openModal(product.id);
   });
 
-  // Add to cart button
   card.querySelector(".btn-add").addEventListener("click", (e) => {
     e.stopPropagation();
     cartAdd(product.id);
@@ -122,40 +132,35 @@ function buildCard(product) {
   return card;
 }
 
-// ── Filter & render products ──────────────────────────────────
+// ── Filters & render ──────────────────────────────────────────
 let activeCategory = "All";
-let searchQuery = "";
+let searchQuery    = "";
 
 function renderProducts() {
   const grid = document.getElementById("product-grid");
   if (!grid) return;
   grid.innerHTML = "";
 
-  let filtered = PRODUCTS.filter((p) => {
-    const matchCat = activeCategory === "All" || p.category === activeCategory;
-    const q = searchQuery.toLowerCase();
-    const matchSearch =
-      !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.includes(q));
+  const q        = searchQuery.toLowerCase();
+  const filtered = (window.PRODUCTS || []).filter((p) => {
+    const matchCat    = activeCategory === "All" || p.category === activeCategory;
+    const matchSearch = !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || (p.tags || []).some((t) => t.includes(q));
     return matchCat && matchSearch;
   });
 
-  // Featured first
   filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
   if (filtered.length === 0) {
     grid.innerHTML = '<p class="no-results">No products found.</p>';
     return;
   }
-
   filtered.forEach((p) => grid.appendChild(buildCard(p)));
 }
 
 function renderFilters() {
   const bar = document.getElementById("filter-bar");
   if (!bar) return;
+  bar.innerHTML = "";
   getCategories().forEach((cat) => {
     const btn = document.createElement("button");
     btn.className = `filter-btn${cat === activeCategory ? " active" : ""}`;
@@ -174,37 +179,32 @@ function renderFilters() {
   });
 }
 
-// ── Product modal ─────────────────────────────────────────────
+// ── Modal ─────────────────────────────────────────────────────
 function openModal(productId) {
   const product = getProduct(productId);
   if (!product) return;
   const overlay = document.getElementById("modal-overlay");
 
-  document.getElementById("modal-img").src = product.image.startsWith("http") ? product.image : "";
-  document.getElementById("modal-img").alt = product.name;
-  document.getElementById("modal-category").textContent = product.category;
-  document.getElementById("modal-product-name").textContent = product.name;
-  document.getElementById("modal-details").textContent = product.details;
-  document.getElementById("modal-price").textContent = formatPrice(product.price);
+  const imgEl = document.getElementById("modal-img");
+  if (imgEl) { imgEl.src = product.image && product.image.startsWith("http") ? product.image : ""; imgEl.alt = product.name; }
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set("modal-category",     product.category);
+  set("modal-product-name", product.name);
+  set("modal-details",      product.details);
+  set("modal-price",        formatPrice(product.price));
 
   const stockEl = document.getElementById("modal-stock");
-  const addBtn = document.getElementById("modal-add-btn");
+  const addBtn  = document.getElementById("modal-add-btn");
 
   if (!isInStock(product)) {
-    stockEl.textContent = "Out of stock";
-    stockEl.className = "modal-stock out";
-    addBtn.disabled = true;
-    addBtn.textContent = "Sold Out";
+    stockEl.textContent = "Out of stock";  stockEl.className = "modal-stock out";
+    addBtn.disabled = true; addBtn.textContent = "Sold Out";
   } else if (product.stock !== -1 && product.stock <= 5) {
-    stockEl.textContent = `Only ${product.stock} left`;
-    stockEl.className = "modal-stock low";
-    addBtn.disabled = false;
-    addBtn.textContent = "Add to Cart";
+    stockEl.textContent = `Only ${product.stock} left`; stockEl.className = "modal-stock low";
+    addBtn.disabled = false; addBtn.textContent = "Add to Cart";
   } else {
     stockEl.textContent = product.stock === -1 ? "In stock" : `${product.stock} in stock`;
-    stockEl.className = "modal-stock";
-    addBtn.disabled = false;
-    addBtn.textContent = "Add to Cart";
+    stockEl.className = "modal-stock"; addBtn.disabled = false; addBtn.textContent = "Add to Cart";
   }
 
   addBtn.onclick = () => {
@@ -230,45 +230,35 @@ function initSearch() {
   let debounce;
   input.addEventListener("input", () => {
     clearTimeout(debounce);
-    debounce = setTimeout(() => {
-      searchQuery = input.value.trim();
-      renderProducts();
-    }, 180);
+    debounce = setTimeout(() => { searchQuery = input.value.trim(); renderProducts(); }, 180);
   });
 }
 
-// ── Escape HTML helper ────────────────────────────────────────
+// ── HTML escape ───────────────────────────────────────────────
 function escHtml(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 // ── Init ──────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadStoreData();
   applyBranding();
   updateCartBadge();
 
-  // Store page
   if (document.getElementById("product-grid")) {
     renderFilters();
     renderProducts();
     initSearch();
   }
 
-  // Modal close handlers
-  const overlay = document.getElementById("modal-overlay");
+  const overlay  = document.getElementById("modal-overlay");
   const closeBtn = document.getElementById("modal-close");
-  if (overlay) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) closeModal();
-    });
-  }
+  if (overlay)  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
   if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
-  });
+  // Cart page hook
+  if (typeof initCartPage === "function") initCartPage();
 });
