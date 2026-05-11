@@ -118,81 +118,272 @@
       <div id="tab-design" class="admin-tab-content hidden">
         <div class="tab-header">
           <div>
-            <h2>Design Settings</h2>
-            <p class="tab-sub">Changes apply instantly when you save.</p>
+            <h2>Design</h2>
+            <p class="tab-sub">All changes preview instantly. Click <strong>Save Changes</strong> to publish to your store.</p>
           </div>
           <button class="btn-primary" id="save-design-btn">Save Changes</button>
         </div>
 
-        <div class="design-grid">
+        <div class="design-layout">
 
-          <!-- Store Info -->
-          <div class="design-card">
-            <h3>Store Info</h3>
-            <div class="form-field">
-              <label for="cfg-name">Store Name</label>
-              <input type="text" id="cfg-name" placeholder="My Store">
-            </div>
-            <div class="form-field">
-              <label for="cfg-tagline">Tagline</label>
-              <input type="text" id="cfg-tagline" placeholder="Quality goods, delivered fast.">
-            </div>
-            <div class="form-field">
-              <label for="cfg-eyebrow">Hero Eyebrow Text <span class="label-hint">(small text above the title)</span></label>
-              <input type="text" id="cfg-eyebrow" placeholder="New Arrivals">
-            </div>
-            <div class="form-field">
-              <label for="cfg-currency">Currency Symbol</label>
-              <input type="text" id="cfg-currency" placeholder="$" style="max-width:80px">
-            </div>
-          </div>
+          <!-- ── CONTROLS COLUMN ── -->
+          <div class="design-controls-col" id="design-controls-col">
 
-          <!-- Colors -->
-          <div class="design-card">
-            <h3>Brand Colors</h3>
-            <p class="design-hint">These control buttons, links, badges, and highlights across the whole site.</p>
-            <div class="color-fields">
-              <div class="form-field">
-                <label for="cfg-accent">Primary Color</label>
-                <div class="color-input-wrap">
-                  <input type="color" id="cfg-accent-picker" value="#6c63ff" class="color-picker">
-                  <input type="text"  id="cfg-accent"        value="#6c63ff" class="color-hex" placeholder="#6c63ff" maxlength="7">
+            <!-- 1. Store Info -->
+            <div class="ds open" data-ds="info">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  Store Info
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="form-row">
+                  <div class="form-field"><label for="cfg-name">Store Name</label><input type="text" id="cfg-name" placeholder="My Store"></div>
+                  <div class="form-field" style="max-width:110px"><label for="cfg-currency">Currency</label><input type="text" id="cfg-currency" placeholder="$" maxlength="4"></div>
                 </div>
-              </div>
-              <div class="form-field">
-                <label for="cfg-accent-dark">Hover / Dark Color</label>
-                <div class="color-input-wrap">
-                  <input type="color" id="cfg-accent-dark-picker" value="#4b44cc" class="color-picker">
-                  <input type="text"  id="cfg-accent-dark"        value="#4b44cc" class="color-hex" placeholder="#4b44cc" maxlength="7">
-                </div>
-              </div>
-              <div class="form-field">
-                <label for="cfg-accent-light">Light / Background Tint</label>
-                <div class="color-input-wrap">
-                  <input type="color" id="cfg-accent-light-picker" value="#ede9ff" class="color-picker">
-                  <input type="text"  id="cfg-accent-light"        value="#ede9ff" class="color-hex" placeholder="#ede9ff" maxlength="7">
-                </div>
+                <div class="form-field"><label for="cfg-tagline">Tagline</label><input type="text" id="cfg-tagline" placeholder="Quality goods, delivered fast."></div>
+                <div class="form-field"><label for="cfg-eyebrow">Hero Eyebrow <span class="label-hint">(small badge above title)</span></label><input type="text" id="cfg-eyebrow" placeholder="New Arrivals"></div>
               </div>
             </div>
-            <div class="color-preview" id="color-preview">
-              <button class="preview-btn" id="preview-btn-sample">Buy Now</button>
-              <span class="preview-badge" id="preview-badge-sample">Featured</span>
-              <a class="preview-link" id="preview-link-sample">View details</a>
+
+            <!-- 2. Colors -->
+            <div class="ds open" data-ds="colors">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                  Colors
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <p class="ds-section-label">Brand</p>
+                <div class="color-grid">
+                  <div class="color-chip-field"><label>Accent</label><div class="color-input-wrap"><input type="color" id="cfg-accent-picker" class="color-picker"><input type="text" id="cfg-accent" class="color-hex" maxlength="7" placeholder="#6c63ff"></div></div>
+                  <div class="color-chip-field"><label>Hover</label><div class="color-input-wrap"><input type="color" id="cfg-accent-dark-picker" class="color-picker"><input type="text" id="cfg-accent-dark" class="color-hex" maxlength="7" placeholder="#4b44cc"></div></div>
+                  <div class="color-chip-field"><label>Tint</label><div class="color-input-wrap"><input type="color" id="cfg-accent-light-picker" class="color-picker"><input type="text" id="cfg-accent-light" class="color-hex" maxlength="7" placeholder="#ede9ff"></div></div>
+                </div>
+                <p class="ds-section-label" style="margin-top:14px">Page</p>
+                <div class="color-grid">
+                  <div class="color-chip-field"><label>Background</label><div class="color-input-wrap"><input type="color" id="cfg-bg-picker" class="color-picker"><input type="text" id="cfg-bg" class="color-hex" maxlength="7" placeholder="#f9f9fb"></div></div>
+                  <div class="color-chip-field"><label>Cards</label><div class="color-input-wrap"><input type="color" id="cfg-surface-picker" class="color-picker"><input type="text" id="cfg-surface" class="color-hex" maxlength="7" placeholder="#ffffff"></div></div>
+                  <div class="color-chip-field"><label>Alt Surface</label><div class="color-input-wrap"><input type="color" id="cfg-surface2-picker" class="color-picker"><input type="text" id="cfg-surface2" class="color-hex" maxlength="7" placeholder="#f1f1f5"></div></div>
+                  <div class="color-chip-field"><label>Borders</label><div class="color-input-wrap"><input type="color" id="cfg-border-picker" class="color-picker"><input type="text" id="cfg-border" class="color-hex" maxlength="7" placeholder="#e4e4ec"></div></div>
+                </div>
+                <p class="ds-section-label" style="margin-top:14px">Text</p>
+                <div class="color-grid">
+                  <div class="color-chip-field"><label>Primary</label><div class="color-input-wrap"><input type="color" id="cfg-text-picker" class="color-picker"><input type="text" id="cfg-text" class="color-hex" maxlength="7" placeholder="#1a1a2e"></div></div>
+                  <div class="color-chip-field"><label>Muted</label><div class="color-input-wrap"><input type="color" id="cfg-text-muted-picker" class="color-picker"><input type="text" id="cfg-text-muted" class="color-hex" maxlength="7" placeholder="#6b6b80"></div></div>
+                  <div class="color-chip-field"><label>Light</label><div class="color-input-wrap"><input type="color" id="cfg-text-light-picker" class="color-picker"><input type="text" id="cfg-text-light" class="color-hex" maxlength="7" placeholder="#a0a0b0"></div></div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- CSS tip -->
-          <div class="design-card design-card-tip">
-            <h3>More Design Control</h3>
-            <p>All spacing, border radii, shadows, and fonts live in <code>css/style.css</code> under the <code>:root</code> block at the top. Edit that file to fully customize the look.</p>
-            <p style="margin-top:10px">For example, to change the card corner rounding:</p>
-            <pre class="code-block">:root {
-  --radius: 12px;   /* cards */
-  --radius-sm: 8px; /* buttons */
-}</pre>
-          </div>
+            <!-- 3. Background -->
+            <div class="ds" data-ds="background">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                  Background
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="toggle-group" id="bg-type-group">
+                  <button type="button" class="toggle-btn active" data-val="color">Solid Color</button>
+                  <button type="button" class="toggle-btn" data-val="image">Image</button>
+                  <button type="button" class="toggle-btn" data-val="gradient">Gradient</button>
+                </div>
+                <div id="bg-color-fields" class="bg-fields">
+                  <div class="form-field" style="margin-top:12px"><label>Page Background Color</label><div class="color-input-wrap"><input type="color" id="cfg-bg-color-picker" class="color-picker"><input type="text" id="cfg-bg-color" class="color-hex" maxlength="7" placeholder="#f9f9fb"></div></div>
+                </div>
+                <div id="bg-image-fields" class="bg-fields hidden">
+                  <div class="form-field" style="margin-top:12px"><label for="cfg-bg-image">Image URL</label><input type="url" id="cfg-bg-image" placeholder="https://..."><div class="image-preview-wrap"><img id="cfg-bg-image-preview" class="image-preview hidden" src="" alt=""></div></div>
+                  <div class="form-row">
+                    <div class="form-field"><label for="cfg-bg-size">Size</label>
+                      <select id="cfg-bg-size" class="form-select"><option value="cover">Cover</option><option value="contain">Contain</option><option value="auto">Auto</option></select></div>
+                    <div class="form-field"><label for="cfg-bg-pos">Position</label>
+                      <select id="cfg-bg-pos" class="form-select"><option value="center">Center</option><option value="top">Top</option><option value="bottom">Bottom</option><option value="left">Left</option><option value="right">Right</option></select></div>
+                  </div>
+                </div>
+                <div id="bg-gradient-fields" class="bg-fields hidden">
+                  <div class="form-field" style="margin-top:12px"><label for="cfg-bg-gradient-dir">Direction</label>
+                    <select id="cfg-bg-gradient-dir" class="form-select"><option value="to bottom">Top → Bottom</option><option value="to right">Left → Right</option><option value="to bottom right">Diagonal ↘</option><option value="to bottom left">Diagonal ↙</option><option value="135deg">135°</option><option value="45deg">45°</option></select></div>
+                  <div class="color-grid">
+                    <div class="color-chip-field"><label>Start Color</label><div class="color-input-wrap"><input type="color" id="cfg-bg-grad-from-picker" class="color-picker"><input type="text" id="cfg-bg-grad-from" class="color-hex" maxlength="7" placeholder="#6c63ff"></div></div>
+                    <div class="color-chip-field"><label>End Color</label><div class="color-input-wrap"><input type="color" id="cfg-bg-grad-to-picker" class="color-picker"><input type="text" id="cfg-bg-grad-to" class="color-hex" maxlength="7" placeholder="#a78bfa"></div></div>
+                  </div>
+                  <div class="gradient-swatch" id="gradient-swatch"></div>
+                </div>
+              </div>
+            </div>
 
-        </div>
+            <!-- 4. Typography -->
+            <div class="ds" data-ds="typography">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                  Typography
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="form-field">
+                  <label for="cfg-font">Font Family</label>
+                  <select id="cfg-font" class="form-select">
+                    <option value="Inter">Inter</option>
+                    <option value="Poppins">Poppins</option>
+                    <option value="DM Sans">DM Sans</option>
+                    <option value="Outfit">Outfit</option>
+                    <option value="Nunito">Nunito</option>
+                    <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                    <option value="Raleway">Raleway</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Lato">Lato</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Merriweather">Merriweather</option>
+                    <option value="Libre Baskerville">Libre Baskerville</option>
+                  </select>
+                </div>
+                <div class="font-preview" id="font-preview">The quick brown fox jumps over the lazy dog.</div>
+              </div>
+            </div>
+
+            <!-- 5. Layout & Spacing -->
+            <div class="ds" data-ds="layout">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+                  Layout &amp; Spacing
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="slider-field"><label>Page Max Width <span class="label-hint">(how wide the content gets)</span></label><div class="slider-wrap"><input type="range" id="cfg-container-width" min="800" max="1600" step="20"><span class="slider-value" id="cfg-container-width-val">1160px</span></div></div>
+                <div class="slider-field"><label>Hero Top Padding</label><div class="slider-wrap"><input type="range" id="cfg-hero-pad-top" min="20" max="160" step="4"><span class="slider-value" id="cfg-hero-pad-top-val">80px</span></div></div>
+                <div class="slider-field"><label>Hero Bottom Padding</label><div class="slider-wrap"><input type="range" id="cfg-hero-pad-bottom" min="20" max="120" step="4"><span class="slider-value" id="cfg-hero-pad-bottom-val">64px</span></div></div>
+                <div class="form-field" style="margin-top:4px"><label>Hero Text Alignment</label>
+                  <div class="toggle-group" id="hero-align-group">
+                    <button type="button" class="toggle-btn" data-val="left">Left</button>
+                    <button type="button" class="toggle-btn active" data-val="center">Center</button>
+                    <button type="button" class="toggle-btn" data-val="right">Right</button>
+                  </div>
+                </div>
+                <div class="slider-field" style="margin-top:12px"><label>Product Grid Gap</label><div class="slider-wrap"><input type="range" id="cfg-grid-gap" min="8" max="48" step="4"><span class="slider-value" id="cfg-grid-gap-val">24px</span></div></div>
+                <div class="slider-field"><label>Min Card Width <span class="label-hint">(affects columns per row)</span></label><div class="slider-wrap"><input type="range" id="cfg-grid-min" min="180" max="400" step="10"><span class="slider-value" id="cfg-grid-min-val">270px</span></div></div>
+              </div>
+            </div>
+
+            <!-- 6. Cards & Borders -->
+            <div class="ds" data-ds="cards">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
+                  Cards &amp; Borders
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="slider-field"><label>Card Corner Radius</label><div class="slider-wrap"><input type="range" id="cfg-radius" min="0" max="32" step="1"><span class="slider-value" id="cfg-radius-val">12px</span></div></div>
+                <div class="slider-field"><label>Button Corner Radius</label><div class="slider-wrap"><input type="range" id="cfg-radius-sm" min="0" max="24" step="1"><span class="slider-value" id="cfg-radius-sm-val">8px</span></div></div>
+                <div class="slider-field"><label>Border Width</label><div class="slider-wrap"><input type="range" id="cfg-border-width" min="0" max="4" step="0.5"><span class="slider-value" id="cfg-border-width-val">1.5px</span></div></div>
+                <div class="slider-field"><label>Card Hover Lift</label><div class="slider-wrap"><input type="range" id="cfg-card-lift" min="0" max="16" step="1"><span class="slider-value" id="cfg-card-lift-val">3px</span></div></div>
+                <div class="form-field" style="margin-top:4px">
+                  <label>Shadow Depth</label>
+                  <div class="shadow-picker" id="shadow-picker">
+                    <button type="button" class="shadow-opt" data-val="none"><div class="shadow-swatch shadow-none"></div><span>None</span></button>
+                    <button type="button" class="shadow-opt" data-val="subtle"><div class="shadow-swatch shadow-subtle"></div><span>Subtle</span></button>
+                    <button type="button" class="shadow-opt active" data-val="medium"><div class="shadow-swatch shadow-medium"></div><span>Medium</span></button>
+                    <button type="button" class="shadow-opt" data-val="strong"><div class="shadow-swatch shadow-strong"></div><span>Strong</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. Navigation -->
+            <div class="ds" data-ds="nav">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                  Navigation Bar
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="slider-field"><label>Background Opacity <span class="label-hint">(0 = fully transparent, 1 = solid)</span></label><div class="slider-wrap"><input type="range" id="cfg-nav-opacity" min="0" max="1" step="0.05"><span class="slider-value" id="cfg-nav-opacity-val">0.85</span></div></div>
+                <div class="slider-field"><label>Blur Amount <span class="label-hint">(frosted glass effect)</span></label><div class="slider-wrap"><input type="range" id="cfg-nav-blur" min="0" max="40" step="1"><span class="slider-value" id="cfg-nav-blur-val">14px</span></div></div>
+              </div>
+            </div>
+
+            <!-- 8. Effects -->
+            <div class="ds" data-ds="effects">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Effects &amp; Animation
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="slider-field"><label>Transition Speed <span class="label-hint">(hover animations)</span></label><div class="slider-wrap"><input type="range" id="cfg-transition" min="0.05" max="0.6" step="0.05"><span class="slider-value" id="cfg-transition-val">0.2s</span></div></div>
+              </div>
+            </div>
+
+          </div><!-- end controls col -->
+
+          <!-- ── PREVIEW COLUMN ── -->
+          <aside class="design-preview-col">
+            <div class="design-preview-sticky">
+              <div class="preview-label">Live Preview</div>
+              <div class="preview-viewport" id="preview-viewport">
+                <!-- Nav -->
+                <div class="pv-nav">
+                  <span class="pv-logo" id="pv-store-name">My Store</span>
+                  <div class="pv-cart-btn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    Cart
+                  </div>
+                </div>
+                <!-- Hero -->
+                <div class="pv-hero" id="pv-hero">
+                  <span class="pv-eyebrow" id="pv-eyebrow">New Arrivals</span>
+                  <div class="pv-title" id="pv-title">My Store</div>
+                  <div class="pv-tagline" id="pv-tagline">Quality goods, delivered fast.</div>
+                </div>
+                <!-- Filter row -->
+                <div class="pv-filters">
+                  <span class="pv-filter-btn pv-active">All</span>
+                  <span class="pv-filter-btn">Kitchen</span>
+                  <span class="pv-filter-btn">Home</span>
+                </div>
+                <!-- Cards -->
+                <div class="pv-grid">
+                  <div class="pv-card pv-featured">
+                    <div class="pv-img"><span class="pv-badge">Featured</span></div>
+                    <div class="pv-body">
+                      <span class="pv-cat">Accessories</span>
+                      <div class="pv-name">Walnut Stand</div>
+                      <div class="pv-footer"><span class="pv-price">$34.99</span><button class="pv-add-btn" type="button">Add</button></div>
+                    </div>
+                  </div>
+                  <div class="pv-card">
+                    <div class="pv-img"></div>
+                    <div class="pv-body">
+                      <span class="pv-cat">Kitchen</span>
+                      <div class="pv-name">Pour-Over Set</div>
+                      <div class="pv-footer"><span class="pv-price">$54.99</span><button class="pv-add-btn" type="button">Add</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="preview-note">Reflects your current design settings in real time.</p>
+            </div>
+          </aside>
+
+        </div><!-- end design-layout -->
       </div>
 
     </main>

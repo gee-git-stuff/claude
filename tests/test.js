@@ -109,6 +109,38 @@ assert(typeof config.currency      === "string",                         "config
 assert(typeof config.currencySymbol=== "string",                         "config has currencySymbol");
 assert(config.accentColor && config.accentColor.startsWith("#"),         "config has valid accentColor");
 
+// Design fields — colors
+assert(config.accentDark  && config.accentDark.startsWith("#"),          "config has accentDark");
+assert(config.accentLight && config.accentLight.startsWith("#"),         "config has accentLight");
+assert(config.colorBg     && config.colorBg.startsWith("#"),             "config has colorBg");
+assert(config.colorSurface&& config.colorSurface.startsWith("#"),        "config has colorSurface");
+assert(config.colorText   && config.colorText.startsWith("#"),           "config has colorText");
+
+// Design fields — typography
+assert(typeof config.fontFamily === "string" && config.fontFamily,       "config has fontFamily");
+
+// Design fields — background
+assert(["color","image","gradient"].includes(config.bgType),             "config bgType is valid");
+
+// Design fields — layout
+assert(!isNaN(Number(config.containerWidth)),                            "config containerWidth is numeric");
+assert(!isNaN(Number(config.heroPaddingTop)),                            "config heroPaddingTop is numeric");
+assert(!isNaN(Number(config.heroPaddingBottom)),                         "config heroPaddingBottom is numeric");
+assert(!isNaN(Number(config.gridGap)),                                   "config gridGap is numeric");
+assert(!isNaN(Number(config.gridMinWidth)),                              "config gridMinWidth is numeric");
+assert(["left","center","right"].includes(config.heroTextAlign),         "config heroTextAlign is valid");
+
+// Design fields — cards & borders
+assert(!isNaN(Number(config.borderRadius)),                              "config borderRadius is numeric");
+assert(!isNaN(Number(config.borderWidth)),                               "config borderWidth is numeric");
+assert(["none","subtle","medium","strong"].includes(config.shadowIntensity), "config shadowIntensity is valid");
+assert(!isNaN(Number(config.cardHoverLift)),                             "config cardHoverLift is numeric");
+
+// Design fields — nav & effects
+assert(!isNaN(Number(config.navBgOpacity)),                              "config navBgOpacity is numeric");
+assert(!isNaN(Number(config.navBlur)),                                   "config navBlur is numeric");
+assert(!isNaN(Number(config.transitionSpeed)),                           "config transitionSpeed is numeric");
+
 // ── File structure ────────────────────────────────────────────
 console.log("\nFile structure:");
 const requiredFiles = [
@@ -214,6 +246,51 @@ async function runServerTests() {
   const newProduct = addRes.json();
   assert(newProduct.id && newProduct.name === "Test Widget", "New product has correct name");
   assert(newProduct.price === 1999, "Price correctly converted to cents");
+
+  // Update config — design fields
+  const cfgUpdate = await new Promise((resolve, reject) => {
+    const payload = JSON.stringify({ accentColor: "#ff0000", borderRadius: "16", shadowIntensity: "strong" });
+    const opts = {
+      hostname: "localhost", port: PORT,
+      path: "/api/admin/config", method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload),
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const req = http.request(opts, (res) => {
+      let data = "";
+      res.on("data", (c) => (data += c));
+      res.on("end",  () => resolve({ status: res.statusCode, json: () => JSON.parse(data) }));
+    });
+    req.on("error", reject);
+    req.write(payload);
+    req.end();
+  });
+  assert(cfgUpdate.status === 200, "PUT /api/admin/config returns 200");
+  const updatedCfg = cfgUpdate.json();
+  assert(updatedCfg.accentColor  === "#ff0000", "Config update persists accentColor");
+  assert(updatedCfg.borderRadius === "16",       "Config update persists borderRadius");
+  assert(updatedCfg.shadowIntensity === "strong","Config update persists shadowIntensity");
+
+  // Restore original accent color
+  await new Promise((resolve, reject) => {
+    const payload = JSON.stringify({ accentColor: "#6c63ff", borderRadius: "12", shadowIntensity: "medium" });
+    const opts = {
+      hostname: "localhost", port: PORT,
+      path: "/api/admin/config", method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(payload),
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    const req = http.request(opts, (res) => { res.resume(); res.on("end", resolve); });
+    req.on("error", reject);
+    req.write(payload);
+    req.end();
+  });
 
   // Clean up — delete the test product so data stays clean
   await new Promise((resolve, reject) => {

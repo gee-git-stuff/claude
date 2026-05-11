@@ -199,7 +199,29 @@ app.delete("/api/admin/products/:id", requireAdmin, (req, res) => {
 
 // ── Admin config route ────────────────────────────────────────
 app.put("/api/admin/config", requireAdmin, (req, res) => {
-  const allowed = ["name","tagline","heroEyebrow","currencySymbol","accentColor","accentDark","accentLight"];
+  const allowed = [
+    // Store info
+    "name","tagline","heroEyebrow","currency","currencySymbol",
+    // Brand colors
+    "accentColor","accentDark","accentLight",
+    // Page colors
+    "colorBg","colorSurface","colorSurface2","colorBorder",
+    "colorText","colorTextMuted","colorTextLight",
+    // Typography
+    "fontFamily",
+    // Background
+    "bgType","bgColor","bgImageUrl","bgImageSize","bgImagePosition",
+    "bgGradientDir","bgGradientFrom","bgGradientTo",
+    // Layout
+    "containerWidth","heroTextAlign","heroPaddingTop","heroPaddingBottom",
+    "gridGap","gridMinWidth",
+    // Cards & borders
+    "borderRadius","borderRadiusSm","borderWidth","shadowIntensity","cardHoverLift",
+    // Navigation
+    "navBgOpacity","navBlur",
+    // Effects
+    "transitionSpeed",
+  ];
   const current = readConfig();
   const updated = { ...current };
 
