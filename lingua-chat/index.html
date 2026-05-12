@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinguaChat — Language Learning Chatbot</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen active">
+      <div class="setup-container">
+        <h1>LinguaChat</h1>
+        <p class="subtitle">Your adaptive language learning companion</p>
+
+        <div class="setup-form">
+          <label for="native-lang">I speak:</label>
+          <select id="native-lang">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="ja">Japanese</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+          </select>
+
+          <label for="target-lang">I want to learn:</label>
+          <select id="target-lang">
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="ja">Japanese</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+            <option value="en">English</option>
+          </select>
+
+          <label for="difficulty">My level:</label>
+          <select id="difficulty">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+
+          <button id="start-btn" class="btn-primary">Start Learning</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen">
+      <header id="chat-header">
+        <button id="back-btn" class="btn-icon" title="Back to setup">&larr;</button>
+        <div class="header-info">
+          <span id="header-lang"></span>
+          <span id="header-level" class="badge"></span>
+        </div>
+        <div class="header-stats">
+          <span id="xp-display" title="Experience points">0 XP</span>
+          <span id="streak-display" title="Correct streak">🔥 0</span>
+        </div>
+      </header>
+
+      <!-- Mode Selector -->
+      <nav id="mode-bar">
+        <button class="mode-btn active" data-mode="chat">💬 Chat</button>
+        <button class="mode-btn" data-mode="flashcard">🗂 Cards</button>
+        <button class="mode-btn" data-mode="listen">👂 Listen</button>
+        <button class="mode-btn" data-mode="speak">🗣 Speak</button>
+      </nav>
+
+      <!-- Chat Area -->
+      <div id="chat-area">
+        <div id="messages"></div>
+      </div>
+
+      <!-- Flashcard Area -->
+      <div id="flashcard-area" class="hidden">
+        <div id="flashcard" class="flashcard">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <span id="card-front-text"></span>
+              <button id="card-speak-btn" class="btn-icon" title="Listen">🔊</button>
+            </div>
+            <div class="flashcard-back">
+              <span id="card-back-text"></span>
+            </div>
+          </div>
+        </div>
+        <div class="flashcard-controls">
+          <button id="card-hard" class="btn-card btn-hard">Hard</button>
+          <button id="card-flip" class="btn-card btn-flip">Flip</button>
+          <button id="card-easy" class="btn-card btn-easy">Easy</button>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div id="input-area">
+        <button id="mic-btn" class="btn-icon" title="Hold to speak">🎤</button>
+        <input type="text" id="msg-input" placeholder="Type a message or speak..." autocomplete="off">
+        <button id="send-btn" class="btn-icon" title="Send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/languages.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
