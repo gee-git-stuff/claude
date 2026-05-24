@@ -1,0 +1,71 @@
+{
+  "pages": [
+    {
+      "id": "home",
+      "name": "Home",
+      "slug": "home",
+      "isHome": true,
+      "showInNav": true,
+      "navLabel": "Home",
+      "background": { "inherit": true },
+      "blocks": [
+        {
+          "id": "block-home-hero",
+          "type": "hero",
+          "content": {
+            "eyebrow": "New Arrivals",
+            "title": "My Store",
+            "tagline": "Quality goods, delivered fast.",
+            "showButton": false,
+            "buttonText": "Shop Now",
+            "buttonUrl": "#products"
+          },
+          "style": { "inherit": true }
+        },
+        {
+          "id": "block-home-products",
+          "type": "product-grid",
+          "content": {
+            "showFilters": true,
+            "showSearch": true,
+            "categoryFilter": "all",
+            "limit": 0
+          },
+          "style": { "inherit": true }
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "name": "About",
+      "slug": "about",
+      "isHome": false,
+      "showInNav": true,
+      "navLabel": "About Us",
+      "background": { "inherit": true },
+      "blocks": [
+        {
+          "id": "block-about-hero",
+          "type": "hero",
+          "content": {
+            "eyebrow": "Who We Are",
+            "title": "About Us",
+            "tagline": "A small team building great things.",
+            "showButton": false,
+            "buttonText": "",
+            "buttonUrl": ""
+          },
+          "style": { "inherit": true }
+        },
+        {
+          "id": "block-about-text",
+          "type": "text",
+          "content": {
+            "text": "We started this store because we believe great products deserve a great home. Every item is hand-picked, every detail considered."
+          },
+          "style": { "inherit": true }
+        }
+      ]
+    }
+  ]
+}

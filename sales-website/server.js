@@ -34,6 +34,7 @@ const crypto  = require("crypto");
 const DATA_DIR      = path.join(__dirname, "data");
 const PRODUCTS_FILE = path.join(DATA_DIR, "products.json");
 const CONFIG_FILE   = path.join(DATA_DIR, "config.json");
+const PAGES_FILE    = path.join(DATA_DIR, "pages.json");
 
 // Default data written on first run if files are missing
 const DEFAULT_CONFIG = {
@@ -47,6 +48,42 @@ const DEFAULT_CONFIG = {
   accentLight:   "#ede9ff",
 };
 
+const DEFAULT_HOME_PAGE = {
+  id: "home",
+  name: "Home",
+  slug: "home",
+  isHome: true,
+  showInNav: true,
+  navLabel: "Home",
+  background: { inherit: true },
+  blocks: [
+    {
+      id: "block-home-hero",
+      type: "hero",
+      content: {
+        eyebrow: "New Arrivals",
+        title: "My Store",
+        tagline: "Quality goods, delivered fast.",
+        showButton: false,
+        buttonText: "Shop Now",
+        buttonUrl: "#products",
+      },
+      style: { inherit: true },
+    },
+    {
+      id: "block-home-products",
+      type: "product-grid",
+      content: {
+        showFilters: true,
+        showSearch: true,
+        categoryFilter: "all",
+        limit: 0,
+      },
+      style: { inherit: true },
+    },
+  ],
+};
+
 // Ensure data directory and files exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(CONFIG_FILE)) {
@@ -54,6 +91,9 @@ if (!fs.existsSync(CONFIG_FILE)) {
 }
 if (!fs.existsSync(PRODUCTS_FILE)) {
   fs.writeFileSync(PRODUCTS_FILE, JSON.stringify([], null, 2));
+}
+if (!fs.existsSync(PAGES_FILE)) {
+  fs.writeFileSync(PAGES_FILE, JSON.stringify({ pages: [DEFAULT_HOME_PAGE] }, null, 2));
 }
 
 // ── JSON helpers ──────────────────────────────────────────────
@@ -68,6 +108,12 @@ function readConfig() {
 }
 function writeConfig(config) {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+function readPages() {
+  return JSON.parse(fs.readFileSync(PAGES_FILE, "utf8"));
+}
+function writePages(data) {
+  fs.writeFileSync(PAGES_FILE, JSON.stringify(data, null, 2));
 }
 
 // ── Admin auth ─────────────────────────────────────────────────
@@ -108,6 +154,22 @@ app.get("/api/config", (req, res) => {
 
 app.get("/api/products", (req, res) => {
   res.json(readProducts());
+});
+
+app.get("/api/pages", (req, res) => {
+  res.json(readPages());
+});
+
+app.get("/api/pages/:slug", (req, res) => {
+  const pages = readPages().pages || [];
+  const page  = pages.find((p) => p.slug === req.params.slug);
+  if (!page) return res.status(404).json({ error: "Page not found" });
+  res.json(page);
+});
+
+// Pretty-URL route for any page: /p/:slug → serves index.html, JS handles render
+app.get("/p/:slug", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // ── Admin auth routes ─────────────────────────────────────────
@@ -195,6 +257,39 @@ app.delete("/api/admin/products/:id", requireAdmin, (req, res) => {
   }
   writeProducts(filtered);
   res.json({ ok: true });
+});
+
+// ── Admin pages routes ────────────────────────────────────────
+app.get("/api/admin/pages", requireAdmin, (req, res) => {
+  res.json(readPages());
+});
+
+app.put("/api/admin/pages", requireAdmin, (req, res) => {
+  const body = req.body || {};
+  if (!Array.isArray(body.pages)) {
+    return res.status(400).json({ error: "pages must be an array" });
+  }
+  const sanitized = body.pages.map(sanitizePage).filter(Boolean);
+  if (sanitized.length === 0) {
+    return res.status(400).json({ error: "at least one page is required" });
+  }
+  // Exactly one home page — first one wins if multiple
+  let homeFound = false;
+  sanitized.forEach((p) => {
+    if (p.isHome && !homeFound) homeFound = true;
+    else p.isHome = false;
+  });
+  if (!homeFound) sanitized[0].isHome = true;
+
+  // Slugs must be unique
+  const slugs = new Set();
+  for (const p of sanitized) {
+    if (slugs.has(p.slug)) return res.status(400).json({ error: `duplicate slug: ${p.slug}` });
+    slugs.add(p.slug);
+  }
+
+  writePages({ pages: sanitized });
+  res.json({ pages: sanitized });
 });
 
 // ── Admin config route ────────────────────────────────────────
@@ -289,6 +384,40 @@ function parseTags(raw) {
   if (Array.isArray(raw)) return raw.map(String).map((t) => t.trim()).filter(Boolean);
   if (typeof raw === "string") return raw.split(",").map((t) => t.trim()).filter(Boolean);
   return [];
+}
+
+const VALID_BLOCK_TYPES = new Set([
+  "hero","text","banner","image","button-row","product-grid","spacer","divider",
+]);
+
+function sanitizePage(p) {
+  if (!p || typeof p !== "object") return null;
+  const id   = String(p.id   || "page-" + Date.now()).trim();
+  const name = String(p.name || "Untitled").trim();
+  const slug = String(p.slug || name.toLowerCase()).trim()
+                 .replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || id;
+  const blocks = Array.isArray(p.blocks) ? p.blocks.map(sanitizeBlock).filter(Boolean) : [];
+  return {
+    id,
+    name,
+    slug,
+    isHome:    Boolean(p.isHome),
+    showInNav: p.showInNav !== false,
+    navLabel:  String(p.navLabel || name).trim(),
+    background: (p.background && typeof p.background === "object") ? p.background : { inherit: true },
+    blocks,
+  };
+}
+
+function sanitizeBlock(b) {
+  if (!b || typeof b !== "object") return null;
+  if (!VALID_BLOCK_TYPES.has(b.type)) return null;
+  return {
+    id:      String(b.id || "block-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8)),
+    type:    b.type,
+    content: (b.content && typeof b.content === "object") ? b.content : {},
+    style:   (b.style   && typeof b.style   === "object") ? b.style   : { inherit: true },
+  };
 }
 
 // ── Start ─────────────────────────────────────────────────────

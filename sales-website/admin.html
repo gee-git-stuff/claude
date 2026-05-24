@@ -119,7 +119,7 @@
         <div class="tab-header">
           <div>
             <h2>Design</h2>
-            <p class="tab-sub">All changes preview instantly. Click <strong>Save Changes</strong> to publish to your store.</p>
+            <p class="tab-sub">Pick a page to edit, or scroll down for global defaults that apply to every page.</p>
           </div>
           <button class="btn-primary" id="save-design-btn">Save Changes</button>
         </div>
@@ -128,6 +128,109 @@
 
           <!-- ── CONTROLS COLUMN ── -->
           <div class="design-controls-col" id="design-controls-col">
+
+            <!-- ==== PAGE BUILDER (top section) ==== -->
+            <div class="ds open ds-pages" data-ds="pages">
+              <button class="ds-header" type="button">
+                <span class="ds-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Pages
+                </span>
+                <svg class="ds-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ds-body">
+                <div class="page-selector-row">
+                  <select id="page-selector" class="form-select"></select>
+                  <button class="btn-icon-add" id="add-page-btn" type="button" title="Add new page">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Page
+                  </button>
+                </div>
+
+                <!-- Page settings -->
+                <div class="page-settings" id="page-settings">
+                  <div class="form-row">
+                    <div class="form-field"><label>Page Name</label><input type="text" id="pg-name" placeholder="About Us"></div>
+                    <div class="form-field"><label>URL Slug <span class="label-hint">(/p/this-name)</span></label><input type="text" id="pg-slug" placeholder="about"></div>
+                  </div>
+                  <div class="form-field"><label>Nav Menu Label</label><input type="text" id="pg-nav-label" placeholder="About"></div>
+                  <div class="form-row">
+                    <label class="checkbox-field"><input type="checkbox" id="pg-show-in-nav"> Show in navigation menu</label>
+                    <label class="checkbox-field"><input type="checkbox" id="pg-is-home"> Home page</label>
+                  </div>
+                  <div class="page-actions">
+                    <button class="btn-secondary btn-small" id="duplicate-page-btn" type="button">Duplicate</button>
+                    <button class="btn-danger btn-small" id="delete-page-btn" type="button">Delete Page</button>
+                  </div>
+                </div>
+
+                <!-- Page background -->
+                <div class="ds-subsection">
+                  <h4 class="ds-subtitle">Page Background</h4>
+                  <label class="checkbox-field" style="margin-bottom:10px"><input type="checkbox" id="pg-bg-inherit" checked> Use global default background</label>
+                  <div id="pg-bg-fields" class="hidden">
+                    <div class="toggle-group" id="pg-bg-type-group">
+                      <button type="button" class="toggle-btn active" data-val="color">Color</button>
+                      <button type="button" class="toggle-btn" data-val="image">Image</button>
+                      <button type="button" class="toggle-btn" data-val="gradient">Gradient</button>
+                      <button type="button" class="toggle-btn" data-val="video">Video</button>
+                      <button type="button" class="toggle-btn" data-val="slideshow">Slideshow</button>
+                    </div>
+                    <div id="pg-bg-color-fields" class="bg-fields">
+                      <div class="form-field" style="margin-top:12px"><label>Background Color</label><div class="color-input-wrap"><input type="color" id="pg-bg-color-picker" class="color-picker"><input type="text" id="pg-bg-color" class="color-hex" maxlength="7" placeholder="#f9f9fb"></div></div>
+                    </div>
+                    <div id="pg-bg-image-fields" class="bg-fields hidden">
+                      <div class="form-field" style="margin-top:12px"><label>Image URL</label><input type="url" id="pg-bg-image" placeholder="https://..."></div>
+                      <div class="form-row">
+                        <div class="form-field"><label>Size</label><select id="pg-bg-image-size" class="form-select"><option value="cover">Cover</option><option value="contain">Contain</option><option value="auto">Auto</option></select></div>
+                        <div class="form-field"><label>Position</label><select id="pg-bg-image-pos" class="form-select"><option value="center">Center</option><option value="top">Top</option><option value="bottom">Bottom</option></select></div>
+                      </div>
+                      <label class="checkbox-field"><input type="checkbox" id="pg-bg-parallax"> Parallax effect (fixed on scroll)</label>
+                    </div>
+                    <div id="pg-bg-gradient-fields" class="bg-fields hidden">
+                      <div class="form-field" style="margin-top:12px"><label>Direction</label><select id="pg-bg-grad-dir" class="form-select"><option value="to bottom">Top → Bottom</option><option value="to right">Left → Right</option><option value="to bottom right">Diagonal ↘</option><option value="135deg">135°</option></select></div>
+                      <div class="color-grid">
+                        <div class="color-chip-field"><label>From</label><div class="color-input-wrap"><input type="color" id="pg-bg-grad-from-picker" class="color-picker"><input type="text" id="pg-bg-grad-from" class="color-hex" maxlength="7"></div></div>
+                        <div class="color-chip-field"><label>To</label><div class="color-input-wrap"><input type="color" id="pg-bg-grad-to-picker" class="color-picker"><input type="text" id="pg-bg-grad-to" class="color-hex" maxlength="7"></div></div>
+                      </div>
+                    </div>
+                    <div id="pg-bg-video-fields" class="bg-fields hidden">
+                      <div class="form-field" style="margin-top:12px"><label>Video URL <span class="label-hint">(MP4, autoplays muted)</span></label><input type="url" id="pg-bg-video" placeholder="https://.../video.mp4"></div>
+                    </div>
+                    <div id="pg-bg-slideshow-fields" class="bg-fields hidden">
+                      <div class="form-field" style="margin-top:12px"><label>Image URLs <span class="label-hint">(one per line)</span></label><textarea id="pg-bg-slideshow" rows="4" placeholder="https://...\nhttps://..."></textarea></div>
+                      <div class="slider-field"><label>Slide Interval</label><div class="slider-wrap"><input type="range" id="pg-bg-slideshow-interval" min="2" max="20" step="1"><span class="slider-value" id="pg-bg-slideshow-interval-val">5s</span></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Block list -->
+                <div class="ds-subsection">
+                  <h4 class="ds-subtitle">Page Blocks</h4>
+                  <p class="ds-help-text">Each block is a section of the page. Click a block to edit it. Drag to reorder.</p>
+                  <div class="block-list" id="block-list"></div>
+                  <div class="add-block-bar">
+                    <span class="add-block-label">Add a block:</span>
+                    <div class="add-block-types">
+                      <button class="add-block-btn" data-block-type="hero" type="button">Hero</button>
+                      <button class="add-block-btn" data-block-type="text" type="button">Text</button>
+                      <button class="add-block-btn" data-block-type="banner" type="button">Banner</button>
+                      <button class="add-block-btn" data-block-type="image" type="button">Image</button>
+                      <button class="add-block-btn" data-block-type="button-row" type="button">Buttons</button>
+                      <button class="add-block-btn" data-block-type="product-grid" type="button">Products</button>
+                      <button class="add-block-btn" data-block-type="spacer" type="button">Spacer</button>
+                      <button class="add-block-btn" data-block-type="divider" type="button">Divider</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==== GLOBAL DEFAULTS LABEL ==== -->
+            <div class="ds-divider">
+              <span class="ds-divider-label">Global Defaults</span>
+              <p class="ds-divider-sub">These apply to every page unless a block or page overrides them.</p>
+            </div>
 
             <!-- 1. Store Info -->
             <div class="ds open" data-ds="info">
@@ -230,23 +333,9 @@
               </button>
               <div class="ds-body">
                 <div class="form-field">
-                  <label for="cfg-font">Font Family</label>
-                  <select id="cfg-font" class="form-select">
-                    <option value="Inter">Inter</option>
-                    <option value="Poppins">Poppins</option>
-                    <option value="DM Sans">DM Sans</option>
-                    <option value="Outfit">Outfit</option>
-                    <option value="Nunito">Nunito</option>
-                    <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
-                    <option value="Raleway">Raleway</option>
-                    <option value="Montserrat">Montserrat</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                    <option value="Lato">Lato</option>
-                    <option value="Playfair Display">Playfair Display</option>
-                    <option value="Merriweather">Merriweather</option>
-                    <option value="Libre Baskerville">Libre Baskerville</option>
-                  </select>
+                  <label>Font Family</label>
+                  <div class="font-picker" id="cfg-font-picker" data-target="cfg-font"></div>
+                  <input type="hidden" id="cfg-font" value="Inter">
                 </div>
                 <div class="font-preview" id="font-preview">The quick brown fox jumps over the lazy dog.</div>
               </div>
@@ -337,49 +426,14 @@
           <!-- ── PREVIEW COLUMN ── -->
           <aside class="design-preview-col">
             <div class="design-preview-sticky">
-              <div class="preview-label">Live Preview</div>
-              <div class="preview-viewport" id="preview-viewport">
-                <!-- Nav -->
-                <div class="pv-nav">
-                  <span class="pv-logo" id="pv-store-name">My Store</span>
-                  <div class="pv-cart-btn">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                    Cart
-                  </div>
-                </div>
-                <!-- Hero -->
-                <div class="pv-hero" id="pv-hero">
-                  <span class="pv-eyebrow" id="pv-eyebrow">New Arrivals</span>
-                  <div class="pv-title" id="pv-title">My Store</div>
-                  <div class="pv-tagline" id="pv-tagline">Quality goods, delivered fast.</div>
-                </div>
-                <!-- Filter row -->
-                <div class="pv-filters">
-                  <span class="pv-filter-btn pv-active">All</span>
-                  <span class="pv-filter-btn">Kitchen</span>
-                  <span class="pv-filter-btn">Home</span>
-                </div>
-                <!-- Cards -->
-                <div class="pv-grid">
-                  <div class="pv-card pv-featured">
-                    <div class="pv-img"><span class="pv-badge">Featured</span></div>
-                    <div class="pv-body">
-                      <span class="pv-cat">Accessories</span>
-                      <div class="pv-name">Walnut Stand</div>
-                      <div class="pv-footer"><span class="pv-price">$34.99</span><button class="pv-add-btn" type="button">Add</button></div>
-                    </div>
-                  </div>
-                  <div class="pv-card">
-                    <div class="pv-img"></div>
-                    <div class="pv-body">
-                      <span class="pv-cat">Kitchen</span>
-                      <div class="pv-name">Pour-Over Set</div>
-                      <div class="pv-footer"><span class="pv-price">$54.99</span><button class="pv-add-btn" type="button">Add</button></div>
-                    </div>
-                  </div>
-                </div>
+              <div class="preview-label">
+                Live Preview
+                <span class="preview-sub" id="preview-page-name">Home</span>
               </div>
-              <p class="preview-note">Reflects your current design settings in real time.</p>
+              <div class="preview-frame-wrap">
+                <iframe id="preview-iframe" class="preview-iframe" title="Live preview"></iframe>
+              </div>
+              <p class="preview-note">Edits appear instantly. Save Changes to publish.</p>
             </div>
           </aside>
 

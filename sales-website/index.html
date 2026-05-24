@@ -14,7 +14,11 @@
   <header>
     <nav class="nav">
       <div class="container nav-inner">
-        <a href="index.html" class="nav-logo" id="nav-store-name">My Store</a>
+        <a href="/" class="nav-logo" id="nav-store-name">My Store</a>
+
+        <div class="nav-links" id="nav-links">
+          <!-- Rendered by page-renderer.js -->
+        </div>
 
         <div class="nav-search">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -39,27 +43,8 @@
     </nav>
   </header>
 
-  <main>
-    <!-- ===== HERO ===== -->
-    <section class="hero container">
-      <div class="hero-eyebrow" id="hero-eyebrow">New Arrivals</div>
-      <h1 id="hero-title">My Store</h1>
-      <p id="hero-tagline">Quality goods, delivered fast.</p>
-    </section>
-
-    <!-- ===== STORE SECTION ===== -->
-    <section class="container">
-      <!-- Category filter tabs -->
-      <div class="filter-bar" id="filter-bar" role="tablist" aria-label="Filter by category">
-        <!-- Rendered by store.js -->
-      </div>
-
-      <!-- Product grid -->
-      <div class="product-grid" id="product-grid" role="list">
-        <!-- Rendered by store.js -->
-      </div>
-    </section>
-  </main>
+  <!-- ===== PAGE CONTENT (rendered from blocks) ===== -->
+  <main id="page-main"></main>
 
   <!-- ===== PRODUCT MODAL ===== -->
   <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-product-name">
@@ -96,5 +81,6 @@
   <!-- Scripts -->
   <script src="js/inventory.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/page-renderer.js"></script>
 </body>
 </html>

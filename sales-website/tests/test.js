@@ -141,14 +141,34 @@ assert(!isNaN(Number(config.navBgOpacity)),                              "config
 assert(!isNaN(Number(config.navBlur)),                                   "config navBlur is numeric");
 assert(!isNaN(Number(config.transitionSpeed)),                           "config transitionSpeed is numeric");
 
+// ── data/pages.json ───────────────────────────────────────────
+console.log("\ndata/pages.json:");
+const pagesRaw = fs.readFileSync(path.join(ROOT, "data", "pages.json"), "utf8");
+let pagesData;
+try {
+  pagesData = JSON.parse(pagesRaw);
+  assert(true, "pages.json is valid JSON");
+} catch {
+  assert(false, "pages.json is valid JSON");
+  pagesData = { pages: [] };
+}
+assert(Array.isArray(pagesData.pages),  "pages.json has pages array");
+assert(pagesData.pages.length > 0,      "pages.json has at least one page");
+assert(pagesData.pages.filter((p) => p.isHome).length === 1, "exactly one page is marked isHome");
+pagesData.pages.forEach((p, i) => {
+  assert(typeof p.id   === "string" && p.id,   `page[${i}] has id`);
+  assert(typeof p.slug === "string" && p.slug, `page[${i}] has slug`);
+  assert(Array.isArray(p.blocks),               `page[${i}] has blocks array`);
+});
+
 // ── File structure ────────────────────────────────────────────
 console.log("\nFile structure:");
 const requiredFiles = [
   "index.html", "cart.html", "success.html", "admin.html",
   "server.js", "start.bat", ".env.example",
   "css/style.css", "css/admin.css",
-  "js/inventory.js", "js/store.js", "js/cart-page.js", "js/admin.js",
-  "data/products.json", "data/config.json",
+  "js/inventory.js", "js/store.js", "js/cart-page.js", "js/admin.js", "js/page-renderer.js",
+  "data/products.json", "data/config.json", "data/pages.json",
 ];
 requiredFiles.forEach((f) => {
   assert(fs.existsSync(path.join(ROOT, f)), `${f} exists`);
@@ -236,6 +256,21 @@ async function runServerTests() {
   // Protected route without token
   const noToken = await get("/api/admin/products");
   assert(noToken.status === 401, "Protected route without token returns 401");
+
+  // Pages API
+  const pagesPub = await get("/api/pages");
+  assert(pagesPub.status === 200, "GET /api/pages returns 200");
+  assert(Array.isArray(pagesPub.json().pages), "GET /api/pages returns pages array");
+
+  const homePage = await get("/api/pages/home");
+  assert(homePage.status === 200, "GET /api/pages/home returns 200");
+  assert(homePage.json().slug === "home", "GET /api/pages/home returns home page");
+
+  const missingPage = await get("/api/pages/nonexistent");
+  assert(missingPage.status === 404, "GET /api/pages/missing returns 404");
+
+  const prettyUrl = await get("/p/about");
+  assert(prettyUrl.status === 200, "GET /p/:slug serves index.html (200)");
 
   // Add a product
   const addRes = await post("/api/admin/products", {

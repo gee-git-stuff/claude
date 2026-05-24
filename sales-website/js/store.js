@@ -1,10 +1,11 @@
 /**
  * store.js — core store logic.
- * Loads config + products from the API, applies all design variables, renders the store.
+ * Loads config + products from the API and applies all design variables.
+ * The page-renderer.js handles rendering blocks; this file handles
+ * branding, the product modal, the cart badge, and the product section helpers.
  */
 
 // ── CSS variable map ──────────────────────────────────────────
-// Maps config keys → { CSS variable, optional unit suffix }
 const CSS_VAR_MAP = {
   accentColor:       { v: "--accent" },
   accentDark:        { v: "--accent-dark" },
@@ -65,19 +66,16 @@ function applyBranding(cfg) {
   cfg = cfg || window.STORE_CONFIG || {};
   const root = document.documentElement;
 
-  // Apply CSS variables from map
   Object.entries(CSS_VAR_MAP).forEach(([key, { v, u = "" }]) => {
     if (cfg[key] !== undefined && cfg[key] !== "") {
       root.style.setProperty(v, cfg[key] + u);
     }
   });
 
-  // Shadow preset
   const [sh, shLg] = SHADOWS[cfg.shadowIntensity] || SHADOWS.medium;
   root.style.setProperty("--shadow",    sh);
   root.style.setProperty("--shadow-lg", shLg);
 
-  // Nav background (needs rgba with surface color)
   if (cfg.colorSurface || cfg.navBgOpacity) {
     const rgb = hexToRgb(cfg.colorSurface || "#ffffff");
     const op  = cfg.navBgOpacity || "0.85";
@@ -85,21 +83,16 @@ function applyBranding(cfg) {
     root.style.setProperty("--nav-bg-rgb", `${rgb.r} ${rgb.g} ${rgb.b}`);
   }
 
-  // Font
   if (cfg.fontFamily) {
     loadGoogleFont(cfg.fontFamily);
     root.style.setProperty("--font", `'${cfg.fontFamily}', system-ui, -apple-system, sans-serif`);
   }
 
-  // Background (body-level)
   applyBackground(cfg);
 
-  // Text content
+  // Store name and footer (not page-block content)
   const setText = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
   setText("nav-store-name", cfg.name);
-  setText("hero-title",     cfg.name);
-  setText("hero-tagline",   cfg.tagline);
-  setText("hero-eyebrow",   cfg.heroEyebrow);
 
   if (cfg.name) {
     const titleEl = document.getElementById("page-title");
@@ -199,7 +192,7 @@ function buildCard(product) {
   card.dataset.id = product.id;
 
   const imgContent = product.image && product.image.startsWith("http")
-    ? `<img src="${escHtml(product.image)}" alt="${escHtml(product.name)}" loading="lazy">`
+    ? `<img src="${escAttr(product.image)}" alt="${escAttr(product.name)}" loading="lazy">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;">${escHtml(product.image || "")}</div>`;
 
   card.innerHTML = `
@@ -230,50 +223,64 @@ function buildCard(product) {
   return card;
 }
 
-// ── Filters & render ──────────────────────────────────────────
-let activeCategory = "All";
-let searchQuery    = "";
+// ── Product section — used by the product-grid block renderer ─
+function initProductSection({ gridEl, filterEl, categoryFilter, limit, showSearch }) {
+  if (!gridEl) return;
+  const state = {
+    activeCategory: categoryFilter && categoryFilter !== "all" ? categoryFilter : "All",
+    search: "",
+    limit: limit || 0,
+  };
 
-function renderProducts() {
-  const grid = document.getElementById("product-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  const q        = searchQuery.toLowerCase();
-  const filtered = (window.PRODUCTS || []).filter((p) => {
-    const matchCat    = activeCategory === "All" || p.category === activeCategory;
-    const matchSearch = !q || p.name.toLowerCase().includes(q) ||
-                        p.description.toLowerCase().includes(q) ||
-                        (p.tags || []).some((t) => t.includes(q));
-    return matchCat && matchSearch;
-  });
-  filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-
-  if (filtered.length === 0) {
-    grid.innerHTML = '<p class="no-results">No products found.</p>';
-    return;
-  }
-  filtered.forEach((p) => grid.appendChild(buildCard(p)));
-}
-
-function renderFilters() {
-  const bar = document.getElementById("filter-bar");
-  if (!bar) return;
-  bar.innerHTML = "";
-  getCategories().forEach((cat) => {
-    const btn = document.createElement("button");
-    btn.className = `filter-btn${cat === activeCategory ? " active" : ""}`;
-    btn.textContent = cat;
-    btn.setAttribute("role", "tab");
-    btn.addEventListener("click", () => {
-      activeCategory = cat;
-      document.querySelectorAll(".filter-btn").forEach((b) => {
-        b.classList.toggle("active", b.textContent === cat);
-      });
-      renderProducts();
+  function render() {
+    gridEl.innerHTML = "";
+    const q = state.search.toLowerCase();
+    let filtered = (window.PRODUCTS || []).filter((p) => {
+      const matchCat = state.activeCategory === "All" || p.category === state.activeCategory;
+      const matchSearch = !q || p.name.toLowerCase().includes(q) ||
+                         p.description.toLowerCase().includes(q) ||
+                         (p.tags || []).some((t) => t.includes(q));
+      return matchCat && matchSearch;
     });
-    bar.appendChild(btn);
-  });
+    filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    if (state.limit > 0) filtered = filtered.slice(0, state.limit);
+
+    if (filtered.length === 0) {
+      gridEl.innerHTML = '<p class="no-results">No products found.</p>';
+      return;
+    }
+    filtered.forEach((p) => gridEl.appendChild(buildCard(p)));
+  }
+
+  if (filterEl) {
+    filterEl.innerHTML = "";
+    getCategories().forEach((cat) => {
+      const btn = document.createElement("button");
+      btn.className = `filter-btn${cat === state.activeCategory ? " active" : ""}`;
+      btn.textContent = cat;
+      btn.addEventListener("click", () => {
+        state.activeCategory = cat;
+        filterEl.querySelectorAll(".filter-btn").forEach((b) => {
+          b.classList.toggle("active", b.textContent === cat);
+        });
+        render();
+      });
+      filterEl.appendChild(btn);
+    });
+  }
+
+  if (showSearch) {
+    const input = document.getElementById("search-input");
+    if (input) {
+      let debounce;
+      input.addEventListener("input", () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => { state.search = input.value.trim(); render(); }, 180);
+      });
+    }
+  }
+
+  render();
 }
 
 // ── Modal ─────────────────────────────────────────────────────
@@ -281,6 +288,7 @@ function openModal(productId) {
   const product = getProduct(productId);
   if (!product) return;
   const overlay = document.getElementById("modal-overlay");
+  if (!overlay) return;
 
   const imgEl = document.getElementById("modal-img");
   if (imgEl) { imgEl.src = product.image && product.image.startsWith("http") ? product.image : ""; imgEl.alt = product.name; }
@@ -311,17 +319,6 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
-// ── Search ────────────────────────────────────────────────────
-function initSearch() {
-  const input = document.getElementById("search-input");
-  if (!input) return;
-  let debounce;
-  input.addEventListener("input", () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(() => { searchQuery = input.value.trim(); renderProducts(); }, 180);
-  });
-}
-
 // ── HTML escape ───────────────────────────────────────────────
 function escHtml(str) {
   return String(str)
@@ -335,10 +332,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyBranding();
   updateCartBadge();
 
-  if (document.getElementById("product-grid")) {
-    renderFilters();
-    renderProducts();
-    initSearch();
+  if (typeof renderCurrentPage === "function") {
+    await renderCurrentPage();
   }
 
   const overlay  = document.getElementById("modal-overlay");
