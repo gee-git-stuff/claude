@@ -37,6 +37,16 @@ async function renderCurrentPage() {
   applyPageBackground(pageData.background);
   renderPageBlocks(pageData);
   updatePageTitle(pageData);
+
+  // Signal the admin preview that this page has fully rendered.
+  // The admin listens for this instead of the iframe "load" event so it
+  // knows all async fetches (and the initial render) are complete before
+  // pushing a preview-update postMessage.
+  try {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: "page-ready", slug: pageData.slug }, "*");
+    }
+  } catch { /* cross-origin guard — same-origin so this is fine */ }
 }
 
 function getCurrentSlug() {

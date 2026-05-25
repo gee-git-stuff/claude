@@ -1135,9 +1135,16 @@ function initPreviewIframe() {
   const p = currentPage();
   const url = p && !p.isHome ? `/p/${p.slug}` : "/";
   iframe.src = url;
-  iframe.addEventListener("load", () => {
-    previewReady = true;
-    sendPreviewUpdate();
+
+  // Listen for "page-ready" from the iframe instead of the "load" event.
+  // The iframe sends this AFTER renderCurrentPage() has fully completed
+  // (including async fetches), so we know the DOM is ready before we push
+  // a preview-update message over it.
+  window.addEventListener("message", (ev) => {
+    if (ev.data?.type === "page-ready" && ev.source === iframe.contentWindow) {
+      previewReady = true;
+      sendPreviewUpdate();
+    }
   });
 }
 

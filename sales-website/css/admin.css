@@ -125,12 +125,12 @@
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 28px;
-  align-items: start;
+  /* stretch (default) keeps both columns the same height so sticky works */
 }
 @media (max-width: 1000px) { .design-layout { grid-template-columns: 1fr; } }
 
 /* ── Accordion sections ─────────────────────────────────────── */
-.design-controls-col { display: flex; flex-direction: column; gap: 10px; }
+.design-controls-col { display: flex; flex-direction: column; gap: 10px; align-self: start; }
 
 .ds {
   background: var(--surface);
@@ -390,7 +390,12 @@
    LIVE PREVIEW COLUMN
    ============================================================ */
 .design-preview-col { }
-.design-preview-sticky { position: sticky; top: 80px; }
+.design-preview-sticky {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
 
 .preview-label {
   font-size: .72rem; font-weight: 700;
