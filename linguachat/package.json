@@ -1,0 +1,11 @@
+{
+  "name": "lingua-chat",
+  "version": "1.0.0",
+  "description": "Interactive language learning chatbot with real-time audio translation and adaptive learning",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "node tests/test.js"
+  },
+  "keywords": ["language-learning", "chatbot", "speech-recognition", "translation"],
+  "license": "MIT"
+}
