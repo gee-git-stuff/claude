@@ -1,13 +1,14 @@
 import { writable } from 'svelte/store';
-import type { Account, Activity, ActivityTotals, EntryWithRecurrence } from './types.js';
+import type { Account, Activity, ActivityTotals, BankTransaction, EntryWithRecurrence } from './types.js';
 
-export const activities = writable<Activity[]>([]);
-export const totals     = writable<ActivityTotals[]>([]);
-export const entries    = writable<EntryWithRecurrence[]>([]);
-export const accounts   = writable<Account[]>([]);
-export const canUndo    = writable(false);
-export const canRedo    = writable(false);
-export const toast      = writable<string | null>(null);
+export const activities    = writable<Activity[]>([]);
+export const totals        = writable<ActivityTotals[]>([]);
+export const entries       = writable<EntryWithRecurrence[]>([]);
+export const accounts      = writable<Account[]>([]);
+export const transactions  = writable<BankTransaction[]>([]);
+export const canUndo       = writable(false);
+export const canRedo       = writable(false);
+export const toast         = writable<string | null>(null);
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 export function flashToast(msg: string) {
@@ -38,6 +39,12 @@ export async function refreshAccounts() {
   const r = await fetch('/api/accounts');
   const j = await r.json();
   accounts.set(j.accounts);
+}
+
+export async function refreshTransactions(accountId: number) {
+  const r = await fetch(`/api/transactions?account_id=${accountId}`);
+  const j = await r.json();
+  transactions.set(j.transactions);
 }
 
 export async function refreshActions() {

@@ -94,7 +94,7 @@
 </div>
 
 <p class="muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
-  Balances are entered manually. CSV import is coming in a later phase.
+  Click an account to view transactions and import a CSV from your bank.
 </p>
 
 {#if $accounts.length === 0}
@@ -114,7 +114,7 @@
       <tbody>
         {#each $accounts as a (a.id)}
           <tr>
-            <td>{a.name}</td>
+            <td><a href="/accounts/{a.id}">{a.name}</a></td>
             <td><span class="chip">{TYPE_LABELS[a.type]}</span></td>
             <td class="muted">{a.notes}</td>
             <td style="text-align: right;" class="amount {DEBT_TYPES.includes(a.type) ? 'bad' : 'good'}">

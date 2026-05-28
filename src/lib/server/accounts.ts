@@ -1,6 +1,6 @@
 import { db } from './db.js';
 import { recordAction } from './actions.js';
-import type { Account, AccountType } from '../types.js';
+import type { Account, AccountType, CsvMapping } from '../types.js';
 
 interface AccountInput {
   name: string;
@@ -61,6 +61,16 @@ export function deleteAccount(id: number): boolean {
   return true;
 }
 
+export function saveMapping(id: number, mapping: CsvMapping): void {
+  db.prepare(`UPDATE accounts SET csv_mapping_json = ?, updated_at = datetime('now') WHERE id = ?`)
+    .run(JSON.stringify(mapping), id);
+}
+
+export function setBalanceSilent(id: number, balanceCents: number): void {
+  db.prepare(`UPDATE accounts SET balance_cents = ?, updated_at = datetime('now') WHERE id = ?`)
+    .run(balanceCents, id);
+}
+
 export function applyAccountForward(kind: string, payload: { id?: number; input?: AccountInput; account?: Account }) {
   switch (kind) {
     case 'CREATE_ACCOUNT': {
@@ -99,8 +109,8 @@ export function applyAccountReverse(kind: string, payload: { id?: number; input?
     case 'DELETE_ACCOUNT': {
       if (!payload.account) return;
       const a = payload.account;
-      db.prepare(`INSERT INTO accounts (id, name, type, balance_cents, notes, updated_at) VALUES (?, ?, ?, ?, ?, ?)`)
-        .run(a.id, a.name, a.type, a.balance_cents, a.notes, a.updated_at);
+      db.prepare(`INSERT INTO accounts (id, name, type, balance_cents, notes, csv_mapping_json, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+        .run(a.id, a.name, a.type, a.balance_cents, a.notes, a.csv_mapping_json ?? '{}', a.updated_at);
       return;
     }
   }

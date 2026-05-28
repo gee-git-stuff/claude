@@ -50,6 +50,19 @@ db.exec(`
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS bank_txns (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id   INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    date         TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    description  TEXT NOT NULL DEFAULT '',
+    raw_row      TEXT NOT NULL DEFAULT '',
+    entry_id     INTEGER REFERENCES entries(id) ON DELETE SET NULL,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_bank_txns_account ON bank_txns(account_id);
+  CREATE INDEX IF NOT EXISTS idx_bank_txns_date    ON bank_txns(date);
+
   CREATE TABLE IF NOT EXISTS actions (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     kind          TEXT NOT NULL,
@@ -61,3 +74,13 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_actions_created ON actions(created_at DESC);
 `);
+
+function ensureColumn(table: string, column: string, ddl: string) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+
+ensureColumn('accounts', 'csv_mapping_json', `csv_mapping_json TEXT NOT NULL DEFAULT '{}'`);
+ensureColumn('entries',  'bank_txn_id',      `bank_txn_id INTEGER REFERENCES bank_txns(id) ON DELETE SET NULL`);
