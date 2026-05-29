@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db, transaction } from './db.js';
 import { recordAction } from './actions.js';
 import { getAccount, setBalanceSilent } from './accounts.js';
 import type { BankTransaction } from '../types.js';
@@ -6,11 +6,11 @@ import type { BankTransaction } from '../types.js';
 export function listTxns(accountId: number): BankTransaction[] {
   return db.prepare(`
     SELECT * FROM bank_txns WHERE account_id = ? ORDER BY date DESC, id DESC
-  `).all(accountId) as BankTransaction[];
+  `).all(accountId) as unknown as BankTransaction[];
 }
 
 export function getTxn(id: number): BankTransaction | undefined {
-  return db.prepare(`SELECT * FROM bank_txns WHERE id = ?`).get(id) as BankTransaction | undefined;
+  return db.prepare(`SELECT * FROM bank_txns WHERE id = ?`).get(id) as unknown as BankTransaction | undefined;
 }
 
 interface TxnInput {
@@ -44,7 +44,7 @@ export function importTxns(accountId: number, txns: TxnInput[], newBalanceCents:
   const insertedTxns: Array<TxnInput & { id: number }> = [];
   let skipped = 0;
 
-  const tx = db.transaction(() => {
+  const tx = transaction(() => {
     for (const t of txns) {
       if (t.raw_row && seen.has(t.raw_row)) { skipped++; continue; }
       const r = insert.run(accountId, t.date, t.amount_cents, t.description, t.raw_row);
@@ -93,15 +93,18 @@ export function applyTxnForward(kind: string, payload: TxnPayload) {
   switch (kind) {
     case 'IMPORT_TXNS': {
       if (payload.account_id == null || !payload.txns) return;
+      const accountId = payload.account_id;
+      const txns = payload.txns;
+      const newBalance = payload.new_balance;
       const insert = db.prepare(`
         INSERT INTO bank_txns (id, account_id, date, amount_cents, description, raw_row)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
-      const tx = db.transaction(() => {
-        for (const t of payload.txns!) {
-          insert.run(t.id, payload.account_id, t.date, t.amount_cents, t.description, t.raw_row);
+      const tx = transaction(() => {
+        for (const t of txns) {
+          insert.run(t.id, accountId, t.date, t.amount_cents, t.description, t.raw_row);
         }
-        if (payload.new_balance != null) setBalanceSilent(payload.account_id!, payload.new_balance);
+        if (newBalance != null) setBalanceSilent(accountId, newBalance);
       });
       tx();
       return;
@@ -118,10 +121,13 @@ export function applyTxnReverse(kind: string, payload: TxnPayload) {
   switch (kind) {
     case 'IMPORT_TXNS': {
       if (payload.account_id == null || !payload.txn_ids) return;
+      const accountId = payload.account_id;
+      const txnIds = payload.txn_ids;
+      const oldBalance = payload.old_balance;
       const del = db.prepare(`DELETE FROM bank_txns WHERE id = ?`);
-      const tx = db.transaction(() => {
-        for (const id of payload.txn_ids!) del.run(id);
-        if (payload.old_balance != null) setBalanceSilent(payload.account_id!, payload.old_balance);
+      const tx = transaction(() => {
+        for (const id of txnIds) del.run(id);
+        if (oldBalance != null) setBalanceSilent(accountId, oldBalance);
       });
       tx();
       return;

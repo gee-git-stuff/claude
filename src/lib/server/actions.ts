@@ -36,19 +36,19 @@ export function recordAction(payload: ActionPayload): number {
 export function listActions(limit = 50): ActionRecord[] {
   return db.prepare(`
     SELECT * FROM actions ORDER BY id DESC LIMIT ?
-  `).all(limit) as ActionRecord[];
+  `).all(limit) as unknown as ActionRecord[];
 }
 
 export function peekUndo(): ActionRecord | undefined {
   return db.prepare(`
     SELECT * FROM actions WHERE undone = 0 ORDER BY id DESC LIMIT 1
-  `).get() as ActionRecord | undefined;
+  `).get() as unknown as ActionRecord | undefined;
 }
 
 export function peekRedo(): ActionRecord | undefined {
   return db.prepare(`
     SELECT * FROM actions WHERE undone = 1 ORDER BY id ASC LIMIT 1
-  `).get() as ActionRecord | undefined;
+  `).get() as unknown as ActionRecord | undefined;
 }
 
 export function markUndone(id: number): void {
@@ -60,5 +60,5 @@ export function markRedone(id: number): void {
 }
 
 export function getAction(id: number): ActionRecord | undefined {
-  return db.prepare(`SELECT * FROM actions WHERE id = ?`).get(id) as ActionRecord | undefined;
+  return db.prepare(`SELECT * FROM actions WHERE id = ?`).get(id) as unknown as ActionRecord | undefined;
 }

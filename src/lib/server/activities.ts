@@ -1,13 +1,13 @@
 import { db } from './db.js';
 import { recordAction } from './actions.js';
-import type { Activity, ActivityType, ActivityTotals } from '../types.js';
+import type { Activity, ActivityType, ActivityTotals, Entry } from '../types.js';
 
 export function listActivities(): Activity[] {
-  return db.prepare(`SELECT * FROM activities ORDER BY name`).all() as Activity[];
+  return db.prepare(`SELECT * FROM activities ORDER BY name`).all() as unknown as Activity[];
 }
 
 export function getActivity(id: number): Activity | undefined {
-  return db.prepare(`SELECT * FROM activities WHERE id = ?`).get(id) as Activity | undefined;
+  return db.prepare(`SELECT * FROM activities WHERE id = ?`).get(id) as unknown as Activity | undefined;
 }
 
 interface ActivityInput {
@@ -51,7 +51,7 @@ export function updateActivity(id: number, input: ActivityInput): Activity | und
 export function deleteActivity(id: number): boolean {
   const before = getActivity(id);
   if (!before) return false;
-  const entries = db.prepare(`SELECT * FROM entries WHERE activity_id = ?`).all(id);
+  const entries = db.prepare(`SELECT * FROM entries WHERE activity_id = ?`).all(id) as unknown as Entry[];
   db.prepare(`DELETE FROM activities WHERE id = ?`).run(id);
   recordAction({
     kind: 'DELETE_ACTIVITY',
@@ -86,7 +86,7 @@ export function applyActivityForward(kind: string, payload: { id?: number; input
   }
 }
 
-export function applyActivityReverse(kind: string, payload: { id?: number; input?: ActivityInput; activity?: Activity; entries?: Array<Record<string, unknown>> }) {
+export function applyActivityReverse(kind: string, payload: { id?: number; input?: ActivityInput; activity?: Activity; entries?: Entry[] }) {
   switch (kind) {
     case 'CREATE_ACTIVITY': {
       if (payload.id == null) return;
@@ -132,5 +132,5 @@ export function activityTotals(): ActivityTotals[] {
     LEFT JOIN entries e ON e.activity_id = a.id
     GROUP BY a.id
     ORDER BY a.name
-  `).all() as ActivityTotals[];
+  `).all() as unknown as ActivityTotals[];
 }

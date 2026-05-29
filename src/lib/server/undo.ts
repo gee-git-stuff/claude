@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db, transaction } from './db.js';
 import { peekRedo, peekUndo, markUndone, markRedone } from './actions.js';
 import { applyActivityForward, applyActivityReverse } from './activities.js';
 import { applyEntryForward, applyEntryReverse } from './entries.js';
@@ -23,7 +23,7 @@ export function undo(): { undone: boolean; summary?: string } {
   const action = peekUndo();
   if (!action) return { undone: false };
   const reverse = JSON.parse(action.reverse_json) as Record<string, unknown>;
-  db.transaction(() => {
+  transaction(() => {
     applyReverse(action.kind, reverse);
     markUndone(action.id);
   })();
@@ -34,7 +34,7 @@ export function redo(): { redone: boolean; summary?: string } {
   const action = peekRedo();
   if (!action) return { redone: false };
   const forward = JSON.parse(action.forward_json) as Record<string, unknown>;
-  db.transaction(() => {
+  transaction(() => {
     applyForward(action.kind, forward);
     markRedone(action.id);
   })();

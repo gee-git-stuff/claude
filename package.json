@@ -1,9 +1,12 @@
 {
   "name": "expense-dashboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Modular expense dashboard for properties, rentals, and side activities",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
     "dev": "vite dev --host 0.0.0.0",
     "build": "vite build",
@@ -14,7 +17,7 @@
     "@sveltejs/adapter-node": "^5.2.0",
     "@sveltejs/kit": "^2.5.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.0",
-    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.19.19",
     "svelte": "^4.2.0",
     "svelte-check": "^3.6.0",
     "tslib": "^2.6.0",
@@ -22,7 +25,6 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
-    "better-sqlite3": "^11.0.0",
     "chart.js": "^4.4.0"
   }
 }

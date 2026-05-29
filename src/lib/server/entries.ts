@@ -26,7 +26,7 @@ export function listEntries(activityId?: number): EntryWithRecurrence[] {
     LEFT JOIN recurrences r ON r.id = e.recurrence_id
     ${where}
     ORDER BY e.date DESC, e.id DESC
-  `).all(...args) as Array<Entry & { r_id: number | null; r_frequency: RecurrenceFrequency | null; r_interval: number | null; r_end_date: string | null }>;
+  `).all(...args) as unknown as Array<Entry & { r_id: number | null; r_frequency: RecurrenceFrequency | null; r_interval: number | null; r_end_date: string | null }>;
 
   return rows.map((r) => ({
     id: r.id,
@@ -45,7 +45,7 @@ export function listEntries(activityId?: number): EntryWithRecurrence[] {
 }
 
 export function getEntry(id: number): Entry | undefined {
-  return db.prepare(`SELECT * FROM entries WHERE id = ?`).get(id) as Entry | undefined;
+  return db.prepare(`SELECT * FROM entries WHERE id = ?`).get(id) as unknown as Entry | undefined;
 }
 
 function createRecurrence(rec: NonNullable<EntryInput['recurrence']>): number {

@@ -10,11 +10,11 @@ interface AccountInput {
 }
 
 export function listAccounts(): Account[] {
-  return db.prepare(`SELECT * FROM accounts ORDER BY type, name`).all() as Account[];
+  return db.prepare(`SELECT * FROM accounts ORDER BY type, name`).all() as unknown as Account[];
 }
 
 export function getAccount(id: number): Account | undefined {
-  return db.prepare(`SELECT * FROM accounts WHERE id = ?`).get(id) as Account | undefined;
+  return db.prepare(`SELECT * FROM accounts WHERE id = ?`).get(id) as unknown as Account | undefined;
 }
 
 export function createAccount(input: AccountInput): Account {
