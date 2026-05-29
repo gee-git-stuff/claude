@@ -27,6 +27,7 @@
     <nav class="nav">
       <a href="/" class:active={isActive('/')}>Overview</a>
       <a href="/activities" class:active={isActive('/activities')}>Activities</a>
+      <a href="/calendar"   class:active={isActive('/calendar')}>Calendar</a>
       <a href="/accounts"   class:active={isActive('/accounts')}>Accounts</a>
       <a href="/history"    class:active={isActive('/history')}>History</a>
     </nav>

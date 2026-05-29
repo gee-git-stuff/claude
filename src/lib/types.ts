@@ -79,11 +79,25 @@ export interface BankTransaction {
   created_at: string;
 }
 
+export type CalendarEventKind = 'BOOKING' | 'MAINTENANCE' | 'REMINDER' | 'OTHER';
+
+export interface CalendarEvent {
+  id: number;
+  activity_id: number;
+  title: string;
+  kind: CalendarEventKind;
+  start_date: string;
+  end_date: string | null;
+  notes: string;
+  created_at: string;
+}
+
 export type ActionKind =
   | 'CREATE_ACTIVITY' | 'UPDATE_ACTIVITY' | 'DELETE_ACTIVITY'
   | 'CREATE_ENTRY'    | 'UPDATE_ENTRY'    | 'DELETE_ENTRY'
   | 'CREATE_ACCOUNT'  | 'UPDATE_ACCOUNT'  | 'DELETE_ACCOUNT'
-  | 'IMPORT_TXNS'     | 'DELETE_TXN'      | 'LINK_TXN';
+  | 'IMPORT_TXNS'     | 'DELETE_TXN'      | 'LINK_TXN'
+  | 'CREATE_EVENT'    | 'UPDATE_EVENT'    | 'DELETE_EVENT';
 
 export interface ActionRecord {
   id: number;

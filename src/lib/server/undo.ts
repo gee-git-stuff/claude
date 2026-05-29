@@ -4,12 +4,14 @@ import { applyActivityForward, applyActivityReverse } from './activities.js';
 import { applyEntryForward, applyEntryReverse } from './entries.js';
 import { applyAccountForward, applyAccountReverse } from './accounts.js';
 import { applyTxnForward, applyTxnReverse } from './transactions.js';
+import { applyEventForward, applyEventReverse } from './calendar.js';
 
 function applyReverse(kind: string, payload: Record<string, unknown>) {
   if (kind.endsWith('_ACTIVITY')) applyActivityReverse(kind, payload);
   else if (kind.endsWith('_ENTRY'))  applyEntryReverse(kind, payload);
   else if (kind.endsWith('_ACCOUNT')) applyAccountReverse(kind, payload);
   else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN') applyTxnReverse(kind, payload);
+  else if (kind.endsWith('_EVENT')) applyEventReverse(kind, payload);
 }
 
 function applyForward(kind: string, payload: Record<string, unknown>) {
@@ -17,6 +19,7 @@ function applyForward(kind: string, payload: Record<string, unknown>) {
   else if (kind.endsWith('_ENTRY'))  applyEntryForward(kind, payload);
   else if (kind.endsWith('_ACCOUNT')) applyAccountForward(kind, payload);
   else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN') applyTxnForward(kind, payload);
+  else if (kind.endsWith('_EVENT')) applyEventForward(kind, payload);
 }
 
 export function undo(): { undone: boolean; summary?: string } {

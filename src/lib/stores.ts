@@ -1,15 +1,16 @@
 import { writable } from 'svelte/store';
-import type { Account, Activity, ActivityTotals, BankTransaction, ChartsResponse, EntryWithRecurrence } from './types.js';
+import type { Account, Activity, ActivityTotals, BankTransaction, CalendarEvent, ChartsResponse, EntryWithRecurrence } from './types.js';
 
-export const activities    = writable<Activity[]>([]);
-export const totals        = writable<ActivityTotals[]>([]);
-export const entries       = writable<EntryWithRecurrence[]>([]);
-export const accounts      = writable<Account[]>([]);
-export const transactions  = writable<BankTransaction[]>([]);
-export const charts        = writable<ChartsResponse | null>(null);
-export const canUndo       = writable(false);
-export const canRedo       = writable(false);
-export const toast         = writable<string | null>(null);
+export const activities      = writable<Activity[]>([]);
+export const totals          = writable<ActivityTotals[]>([]);
+export const entries         = writable<EntryWithRecurrence[]>([]);
+export const accounts        = writable<Account[]>([]);
+export const transactions    = writable<BankTransaction[]>([]);
+export const charts          = writable<ChartsResponse | null>(null);
+export const calendarEvents  = writable<CalendarEvent[]>([]);
+export const canUndo         = writable(false);
+export const canRedo         = writable(false);
+export const toast           = writable<string | null>(null);
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 export function flashToast(msg: string) {
@@ -26,6 +27,13 @@ export async function refreshCharts(months: number) {
   const r = await fetch(`/api/charts?months=${months}`);
   const j = await r.json();
   charts.set(j);
+}
+
+export async function refreshCalendar(from?: string, to?: string) {
+  const qs = from && to ? `?from=${from}&to=${to}` : '';
+  const r = await fetch(`/api/calendar${qs}`);
+  const j = await r.json();
+  calendarEvents.set(j.events);
 }
 
 export async function refreshActivities() {

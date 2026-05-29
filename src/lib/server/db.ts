@@ -85,6 +85,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_bank_txns_account ON bank_txns(account_id);
   CREATE INDEX IF NOT EXISTS idx_bank_txns_date    ON bank_txns(date);
 
+  CREATE TABLE IF NOT EXISTS calendar_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    activity_id INTEGER NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    title       TEXT NOT NULL,
+    kind        TEXT NOT NULL CHECK (kind IN ('BOOKING','MAINTENANCE','REMINDER','OTHER')) DEFAULT 'OTHER',
+    start_date  TEXT NOT NULL,
+    end_date    TEXT,
+    notes       TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_calendar_activity ON calendar_events(activity_id);
+  CREATE INDEX IF NOT EXISTS idx_calendar_dates    ON calendar_events(start_date, end_date);
+
   CREATE TABLE IF NOT EXISTS actions (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     kind          TEXT NOT NULL,
