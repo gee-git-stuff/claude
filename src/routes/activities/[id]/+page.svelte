@@ -1,16 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { activities, totals, entries, refreshAll, refreshEntries, refreshActions, flashToast } from '$lib/stores.js';
+  import { activities, totals, entries, charts, refreshAll, refreshEntries, refreshActions, refreshCharts, flashToast } from '$lib/stores.js';
   import { formatMoney, parseMoney, formatDate, todayIso, CATEGORIES } from '$lib/format.js';
+  import { categoryDoughnutData, moneyAxis, moneyTooltip, monthlyIncomeExpenseData } from '$lib/chartHelpers.js';
+  import Chart from '$lib/components/Chart.svelte';
   import type { EntryKind, RecurrenceFrequency, EntryWithRecurrence } from '$lib/types.js';
+
+  let chartMonths = 12;
 
   $: id = Number($page.params.id);
   $: activity = $activities.find((a) => a.id === id);
   $: totalsRow = $totals.find((t) => t.activity_id === id);
 
-  onMount(() => { refreshAll().then(() => refreshEntries(id)); });
+  onMount(() => { refreshAll().then(() => refreshEntries(id)); refreshCharts(chartMonths); });
   $: if (id) refreshEntries(id);
+  $: refreshCharts(chartMonths);
+
+  $: incomeExpenseData = $charts ? monthlyIncomeExpenseData($charts.labels, $charts.monthly, id) : null;
+  $: expenseDoughnut = $charts ? categoryDoughnutData($charts.categories, 'EXPENSE', new Set([id])) : null;
 
   let showForm = false;
   let editingId: number | null = null;
@@ -165,6 +173,44 @@
           {/each}
         </tbody>
       </table>
+    </div>
+  {/if}
+
+  {#if $entries.length > 0}
+    <section class="section-header" style="margin-top: 2rem;">
+      <h2>Trends</h2>
+      <span class="muted">last {chartMonths} month{chartMonths === 1 ? '' : 's'}</span>
+      <div class="filter-bar right" style="margin-bottom: 0;">
+        {#each [3, 6, 12, 24] as m}
+          <button class="filter-chip" class:on={chartMonths === m} on:click={() => (chartMonths = m)}>{m}mo</button>
+        {/each}
+      </div>
+    </section>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+      {#if incomeExpenseData}
+        <div class="card">
+          <div class="muted" style="margin-bottom: 0.5rem;">Income vs expenses per month</div>
+          <Chart
+            type="bar"
+            data={incomeExpenseData}
+            options={{
+              plugins: { tooltip: moneyTooltip(), legend: { position: 'bottom' } },
+              scales: { y: moneyAxis() }
+            }}
+          />
+        </div>
+      {/if}
+      {#if expenseDoughnut && expenseDoughnut.labels.length > 0}
+        <div class="card">
+          <div class="muted" style="margin-bottom: 0.5rem;">Expenses by category</div>
+          <Chart
+            type="doughnut"
+            data={expenseDoughnut}
+            options={{ plugins: { tooltip: moneyTooltip(), legend: { position: 'right' } } }}
+          />
+        </div>
+      {/if}
     </div>
   {/if}
 {/if}

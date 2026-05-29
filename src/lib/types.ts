@@ -101,3 +101,24 @@ export interface ActivityTotals {
   income_cents: number;
   net_cents: number;
 }
+
+export interface MonthlyRow {
+  month: string;
+  activity_id: number;
+  income_cents: number;
+  expense_cents: number;
+}
+
+export interface CategoryRow {
+  activity_id: number;
+  category: string;
+  kind: 'EXPENSE' | 'INCOME';
+  amount_cents: number;
+}
+
+export interface ChartsResponse {
+  months: number;
+  labels: string[];
+  monthly: MonthlyRow[];
+  categories: CategoryRow[];
+}

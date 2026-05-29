@@ -1,7 +1,14 @@
 <script lang="ts">
-  import { activities, totals } from '$lib/stores.js';
+  import { onMount } from 'svelte';
+  import { activities, totals, charts, refreshCharts } from '$lib/stores.js';
   import { formatMoney } from '$lib/format.js';
+  import { categoryDoughnutData, moneyAxis, moneyTooltip, netOverTimeData, profitabilityBarData } from '$lib/chartHelpers.js';
+  import Chart from '$lib/components/Chart.svelte';
   import type { ActivityType } from '$lib/types.js';
+
+  let months = 12;
+  $: refreshCharts(months);
+  onMount(() => refreshCharts(months));
 
   const TYPE_LABELS: Record<ActivityType, string> = {
     AIRBNB: 'AirBnB',
@@ -32,8 +39,23 @@
     if (pickedIds.size > 0) return pickedIds.has(a.id);
     return selected.has(a.type);
   });
+  $: visibleIdSet = new Set(visible.map((a) => a.id));
 
   $: totalsById = Object.fromEntries($totals.map((t) => [t.activity_id, t]));
+
+  $: chartsData = $charts;
+  $: filteredMonthly = chartsData ? chartsData.monthly.filter((r) => visibleIdSet.has(r.activity_id)) : [];
+  $: netLineData = chartsData ? netOverTimeData(chartsData.labels, filteredMonthly, visible) : null;
+  $: profitData = chartsData ? profitabilityBarData(filteredMonthly, visible) : null;
+  $: expenseDoughnutData = chartsData ? categoryDoughnutData(chartsData.categories, 'EXPENSE', visibleIdSet) : null;
+
+  const TIME_RANGES = [
+    { value: 3,  label: '3 mo' },
+    { value: 6,  label: '6 mo' },
+    { value: 12, label: '1 yr' },
+    { value: 24, label: '2 yr' },
+    { value: 60, label: '5 yr' }
+  ];
 
   $: combined = visible.reduce(
     (acc, a) => {
@@ -67,6 +89,10 @@
       {pickedIds.size} picked — clear
     </button>
   {/if}
+  <span class="muted" style="margin-left: auto; margin-right: 0.4rem; font-size: 0.85rem;">Range:</span>
+  {#each TIME_RANGES as r}
+    <button class="filter-chip" class:on={months === r.value} on:click={() => (months = r.value)}>{r.label}</button>
+  {/each}
 </div>
 
 <div class="card" style="margin-bottom: 1rem;">
@@ -130,4 +156,54 @@
       </a>
     {/each}
   </div>
+
+  {#if chartsData && visible.length > 0}
+    <section class="section-header" style="margin-top: 2rem;">
+      <h2>Trends</h2>
+      <span class="muted">last {months} month{months === 1 ? '' : 's'}</span>
+    </section>
+
+    <div class="grid" style="grid-template-columns: minmax(0, 1fr); gap: 1rem;">
+      {#if netLineData}
+        <div class="card">
+          <div class="muted" style="margin-bottom: 0.5rem;">Net profit / loss per month</div>
+          <Chart
+            type="line"
+            data={netLineData}
+            options={{
+              plugins: { tooltip: moneyTooltip(), legend: { position: 'bottom' } },
+              scales: { y: moneyAxis() }
+            }}
+          />
+        </div>
+      {/if}
+
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+        {#if profitData}
+          <div class="card">
+            <div class="muted" style="margin-bottom: 0.5rem;">Profitability ranking</div>
+            <Chart
+              type="bar"
+              data={profitData}
+              options={{
+                indexAxis: 'y',
+                plugins: { tooltip: moneyTooltip(), legend: { display: false } },
+                scales: { x: moneyAxis() }
+              }}
+            />
+          </div>
+        {/if}
+        {#if expenseDoughnutData && expenseDoughnutData.labels.length > 0}
+          <div class="card">
+            <div class="muted" style="margin-bottom: 0.5rem;">Expenses by category</div>
+            <Chart
+              type="doughnut"
+              data={expenseDoughnutData}
+              options={{ plugins: { tooltip: moneyTooltip(), legend: { position: 'right' } } }}
+            />
+          </div>
+        {/if}
+      </div>
+    </div>
+  {/if}
 {/if}
