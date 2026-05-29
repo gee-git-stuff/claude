@@ -1,18 +1,56 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { accounts, transactions, refreshAccounts, refreshTransactions, refreshActions, flashToast } from '$lib/stores.js';
-  import { formatMoney, parseMoney, formatDate } from '$lib/format.js';
+  import { accounts, activities, transactions, refreshAccounts, refreshActivities, refreshTransactions, refreshActions, flashToast } from '$lib/stores.js';
+  import { formatMoney, parseMoney, formatDate, CATEGORIES } from '$lib/format.js';
   import { detectDelimiter, parseCsv, applyMapping, type ParsedTxn } from '$lib/csv.js';
-  import { DEFAULT_CSV_MAPPING, type CsvMapping } from '$lib/types.js';
+  import { DEFAULT_CSV_MAPPING, type BankTransactionWithLink, type CsvMapping } from '$lib/types.js';
 
   $: id = Number($page.params.id);
   $: account = $accounts.find((a) => a.id === id);
 
   onMount(async () => {
     await refreshAccounts();
+    await refreshActivities();
     if (id) await refreshTransactions(id);
   });
+
+  let showTag = false;
+  let tagTxn: BankTransactionWithLink | null = null;
+  let tagActivityId: number | null = null;
+  let tagCategory = CATEGORIES[0];
+  let tagNote = '';
+
+  function openTag(t: BankTransactionWithLink) {
+    tagTxn = t;
+    tagActivityId = $activities[0]?.id ?? null;
+    const isIncome = t.amount_cents >= 0;
+    tagCategory = isIncome ? 'Income' : CATEGORIES[0];
+    tagNote = t.description;
+    showTag = true;
+  }
+
+  async function saveTag() {
+    if (!tagTxn || tagActivityId == null) return;
+    const r = await fetch(`/api/transactions/${tagTxn.id}/tag`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ activity_id: tagActivityId, category: tagCategory, note: tagNote })
+    });
+    if (!r.ok) { flashToast('Tag failed'); return; }
+    flashToast('Tagged');
+    showTag = false;
+    await refreshTransactions(id);
+    await refreshActions();
+  }
+
+  async function untag(t: BankTransactionWithLink) {
+    if (!confirm(`Untag "${t.description}"? The linked activity entry will be deleted. (You can undo.)`)) return;
+    const r = await fetch(`/api/transactions/${t.id}/untag`, { method: 'POST' });
+    if (!r.ok) { flashToast('Untag failed'); return; }
+    flashToast('Untagged');
+    await refreshTransactions(id);
+    await refreshActions();
+  }
 
   let showImport = false;
   let csvText = '';
@@ -147,11 +185,24 @@
           {#each $transactions as t (t.id)}
             <tr>
               <td>{formatDate(t.date)}</td>
-              <td>{t.description}</td>
+              <td>
+                {t.description}
+                {#if t.link}
+                  <br />
+                  <a href="/activities/{t.link.activity_id}" class="chip" style="background: {t.link.activity_color}; color: white; margin-top: 0.2rem; display: inline-block; text-decoration: none;">
+                    {t.link.activity_name} · {t.link.category}
+                  </a>
+                {/if}
+              </td>
               <td style="text-align: right;" class="amount {t.amount_cents >= 0 ? 'good' : 'bad'}">
                 {t.amount_cents >= 0 ? '+' : '−'}{formatMoney(Math.abs(t.amount_cents))}
               </td>
-              <td style="text-align: right;">
+              <td style="text-align: right; white-space: nowrap;">
+                {#if t.link}
+                  <button on:click={() => untag(t)} title="Remove the linked activity entry">Untag</button>
+                {:else}
+                  <button class="primary" on:click={() => openTag(t)} title="Create an activity entry from this transaction">+ Tag</button>
+                {/if}
                 <button class="danger" on:click={() => removeTxn(t.id)}>×</button>
               </td>
             </tr>
@@ -311,6 +362,41 @@
           <button class="primary right" on:click={doImport} disabled={newTxns.length === 0}>
             Import {newTxns.length} transaction{newTxns.length === 1 ? '' : 's'}
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showTag && tagTxn}
+  <div class="modal-bg" on:click|self={() => (showTag = false)} role="dialog">
+    <div class="modal">
+      <h3>Tag transaction</h3>
+      <p class="muted" style="font-size: 0.85rem; margin-top: 0;">
+        Creates a {tagTxn.amount_cents >= 0 ? 'income' : 'expense'} entry on the selected activity for
+        <strong class="amount {tagTxn.amount_cents >= 0 ? 'good' : 'bad'}">{formatMoney(Math.abs(tagTxn.amount_cents))}</strong>
+        dated {formatDate(tagTxn.date)}.
+      </p>
+      <div class="col">
+        <div>
+          <label>Activity</label>
+          <select bind:value={tagActivityId}>
+            {#each $activities as a}<option value={a.id}>{a.name}</option>{/each}
+          </select>
+        </div>
+        <div>
+          <label>Category</label>
+          <select bind:value={tagCategory}>
+            {#each CATEGORIES as c}<option value={c}>{c}</option>{/each}
+          </select>
+        </div>
+        <div>
+          <label>Note</label>
+          <input bind:value={tagNote} />
+        </div>
+        <div class="row" style="margin-top: 0.5rem;">
+          <button on:click={() => (showTag = false)}>Cancel</button>
+          <button class="primary right" on:click={saveTag} disabled={tagActivityId == null}>Tag</button>
         </div>
       </div>
     </div>

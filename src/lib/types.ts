@@ -29,6 +29,7 @@ export interface Entry {
   category: string;
   note: string;
   recurrence_id: number | null;
+  bank_txn_id: number | null;
   created_at: string;
 }
 
@@ -79,6 +80,16 @@ export interface BankTransaction {
   created_at: string;
 }
 
+export interface BankTransactionWithLink extends BankTransaction {
+  link: {
+    entry_id: number;
+    activity_id: number;
+    activity_name: string;
+    activity_color: string;
+    category: string;
+  } | null;
+}
+
 export type CalendarEventKind = 'BOOKING' | 'MAINTENANCE' | 'REMINDER' | 'OTHER';
 
 export interface CalendarEvent {
@@ -96,7 +107,7 @@ export type ActionKind =
   | 'CREATE_ACTIVITY' | 'UPDATE_ACTIVITY' | 'DELETE_ACTIVITY'
   | 'CREATE_ENTRY'    | 'UPDATE_ENTRY'    | 'DELETE_ENTRY'
   | 'CREATE_ACCOUNT'  | 'UPDATE_ACCOUNT'  | 'DELETE_ACCOUNT'
-  | 'IMPORT_TXNS'     | 'DELETE_TXN'      | 'LINK_TXN'
+  | 'IMPORT_TXNS'     | 'DELETE_TXN'      | 'TAG_TXN' | 'UNTAG_TXN'
   | 'CREATE_EVENT'    | 'UPDATE_EVENT'    | 'DELETE_EVENT';
 
 export interface ActionRecord {

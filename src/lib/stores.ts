@@ -1,11 +1,11 @@
 import { writable } from 'svelte/store';
-import type { Account, Activity, ActivityTotals, BankTransaction, CalendarEvent, ChartsResponse, EntryWithRecurrence } from './types.js';
+import type { Account, Activity, ActivityTotals, BankTransactionWithLink, CalendarEvent, ChartsResponse, EntryWithRecurrence } from './types.js';
 
 export const activities      = writable<Activity[]>([]);
 export const totals          = writable<ActivityTotals[]>([]);
 export const entries         = writable<EntryWithRecurrence[]>([]);
 export const accounts        = writable<Account[]>([]);
-export const transactions    = writable<BankTransaction[]>([]);
+export const transactions    = writable<BankTransactionWithLink[]>([]);
 export const charts          = writable<ChartsResponse | null>(null);
 export const calendarEvents  = writable<CalendarEvent[]>([]);
 export const canUndo         = writable(false);

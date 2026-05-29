@@ -10,7 +10,7 @@ function applyReverse(kind: string, payload: Record<string, unknown>) {
   if (kind.endsWith('_ACTIVITY')) applyActivityReverse(kind, payload);
   else if (kind.endsWith('_ENTRY'))  applyEntryReverse(kind, payload);
   else if (kind.endsWith('_ACCOUNT')) applyAccountReverse(kind, payload);
-  else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN') applyTxnReverse(kind, payload);
+  else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN' || kind === 'TAG_TXN' || kind === 'UNTAG_TXN') applyTxnReverse(kind, payload);
   else if (kind.endsWith('_EVENT')) applyEventReverse(kind, payload);
 }
 
@@ -18,7 +18,7 @@ function applyForward(kind: string, payload: Record<string, unknown>) {
   if (kind.endsWith('_ACTIVITY')) applyActivityForward(kind, payload);
   else if (kind.endsWith('_ENTRY'))  applyEntryForward(kind, payload);
   else if (kind.endsWith('_ACCOUNT')) applyAccountForward(kind, payload);
-  else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN') applyTxnForward(kind, payload);
+  else if (kind === 'IMPORT_TXNS' || kind === 'DELETE_TXN' || kind === 'TAG_TXN' || kind === 'UNTAG_TXN') applyTxnForward(kind, payload);
   else if (kind.endsWith('_EVENT')) applyEventForward(kind, payload);
 }
 

@@ -37,6 +37,7 @@ export function listEntries(activityId?: number): EntryWithRecurrence[] {
     category: r.category,
     note: r.note,
     recurrence_id: r.recurrence_id,
+    bank_txn_id: r.bank_txn_id,
     created_at: r.created_at,
     recurrence: r.r_id != null && r.r_frequency != null && r.r_interval != null
       ? { id: r.r_id, frequency: r.r_frequency, interval: r.r_interval, end_date: r.r_end_date }
