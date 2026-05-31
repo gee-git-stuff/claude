@@ -26,6 +26,7 @@
     <span class="app-title">Expense Dashboard</span>
     <nav class="nav">
       <a href="/" class:active={isActive('/')}>Overview</a>
+      <a href="/personal"   class:active={isActive('/personal')}>Personal</a>
       <a href="/activities" class:active={isActive('/activities')}>Activities</a>
       <a href="/calendar"   class:active={isActive('/calendar')}>Calendar</a>
       <a href="/accounts"   class:active={isActive('/accounts')}>Accounts</a>

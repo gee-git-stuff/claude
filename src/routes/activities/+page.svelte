@@ -7,6 +7,7 @@
     AIRBNB: 'AirBnB',
     TURO: 'Turo',
     PROPERTY: 'Property',
+    PERSONAL: 'Personal',
     CUSTOM: 'Other'
   };
 
@@ -113,6 +114,7 @@
             <option value="AIRBNB">AirBnB</option>
             <option value="TURO">Turo</option>
             <option value="PROPERTY">Property (personal/tenant)</option>
+            <option value="PERSONAL">Personal finance</option>
             <option value="CUSTOM">Other</option>
           </select>
         </div>

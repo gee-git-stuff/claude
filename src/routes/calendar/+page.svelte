@@ -5,9 +5,9 @@
   import type { ActivityType, CalendarEvent, CalendarEventKind } from '$lib/types.js';
 
   const TYPE_LABELS: Record<ActivityType, string> = {
-    AIRBNB: 'AirBnB', TURO: 'Turo', PROPERTY: 'Property', CUSTOM: 'Other'
+    AIRBNB: 'AirBnB', TURO: 'Turo', PROPERTY: 'Property', PERSONAL: 'Personal', CUSTOM: 'Other'
   };
-  const ALL_TYPES: ActivityType[] = ['AIRBNB', 'TURO', 'PROPERTY', 'CUSTOM'];
+  const ALL_TYPES: ActivityType[] = ['AIRBNB', 'TURO', 'PROPERTY', 'PERSONAL', 'CUSTOM'];
   const KIND_LABELS: Record<CalendarEventKind, string> = {
     BOOKING: 'Booking', MAINTENANCE: 'Maintenance', REMINDER: 'Reminder', OTHER: 'Other'
   };

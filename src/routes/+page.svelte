@@ -14,9 +14,10 @@
     AIRBNB: 'AirBnB',
     TURO: 'Turo',
     PROPERTY: 'Property',
+    PERSONAL: 'Personal',
     CUSTOM: 'Other'
   };
-  const ALL_TYPES: ActivityType[] = ['AIRBNB', 'TURO', 'PROPERTY', 'CUSTOM'];
+  const ALL_TYPES: ActivityType[] = ['AIRBNB', 'TURO', 'PROPERTY', 'PERSONAL', 'CUSTOM'];
 
   let selected: Set<ActivityType> = new Set(['AIRBNB', 'TURO', 'PROPERTY', 'CUSTOM']);
   let pickedIds: Set<number> = new Set();

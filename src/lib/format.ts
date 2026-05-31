@@ -35,3 +35,15 @@ export const CATEGORIES = [
   'Insurance', 'Taxes', 'Supplies', 'Fees', 'Marketing', 'Mileage',
   'Income', 'Booking', 'Other'
 ];
+
+export const PERSONAL_CATEGORIES = [
+  'Mortgage', 'Rent', 'Property tax', 'HOA',
+  'Electric', 'Gas', 'Water', 'Internet', 'Phone', 'Streaming',
+  'Insurance', 'Health', 'Medical',
+  'Groceries', 'Dining', 'Coffee',
+  'Fuel', 'Auto loan', 'Auto insurance', 'Transit', 'Parking',
+  'Subscriptions', 'Software', 'Entertainment',
+  'Childcare', 'Education', 'Gifts',
+  'Salary', 'Bonus', 'Side income', 'Interest', 'Dividends', 'Refund',
+  'Savings transfer', 'Investment', 'Other'
+];
