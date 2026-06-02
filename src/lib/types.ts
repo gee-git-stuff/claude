@@ -103,6 +103,17 @@ export interface CalendarEvent {
   created_at: string;
 }
 
+export interface Document {
+  id: number;
+  activity_id: number;
+  entry_id: number | null;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
+  storage_path: string;
+  uploaded_at: string;
+}
+
 export type ActionKind =
   | 'CREATE_ACTIVITY' | 'UPDATE_ACTIVITY' | 'DELETE_ACTIVITY'
   | 'CREATE_ENTRY'    | 'UPDATE_ENTRY'    | 'DELETE_ENTRY'

@@ -108,6 +108,18 @@ db.exec(`
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_actions_created ON actions(created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS documents (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    activity_id   INTEGER NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    entry_id      INTEGER REFERENCES entries(id) ON DELETE SET NULL,
+    filename      TEXT NOT NULL,
+    mime_type     TEXT NOT NULL,
+    size_bytes    INTEGER NOT NULL,
+    storage_path  TEXT NOT NULL,
+    uploaded_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_documents_activity ON documents(activity_id);
 `);
 
 function ensureColumn(table: string, column: string, ddl: string) {

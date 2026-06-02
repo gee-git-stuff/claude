@@ -5,6 +5,7 @@
   import { formatMoney, parseMoney, formatDate, todayIso, CATEGORIES } from '$lib/format.js';
   import { categoryDoughnutData, moneyAxis, moneyTooltip, monthlyIncomeExpenseData } from '$lib/chartHelpers.js';
   import Chart from '$lib/components/Chart.svelte';
+  import DocumentsSection from '$lib/components/DocumentsSection.svelte';
   import type { EntryKind, RecurrenceFrequency, EntryWithRecurrence } from '$lib/types.js';
 
   let chartMonths = 12;
@@ -213,6 +214,11 @@
       {/if}
     </div>
   {/if}
+
+  <section class="section-header" style="margin-top: 1.5rem;">
+    <h3 style="margin: 0; font-size: 1.05rem;">Documents</h3>
+  </section>
+  <DocumentsSection activityId={id} />
 {/if}
 
 {#if showForm}

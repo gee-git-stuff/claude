@@ -5,7 +5,31 @@
   import { freqLabel, monthlyAmountCents, nextOccurrence, upcomingOccurrences } from '$lib/recurrence.js';
   import { categoryDoughnutData, monthlyIncomeExpenseData, moneyAxis, moneyTooltip } from '$lib/chartHelpers.js';
   import Chart from '$lib/components/Chart.svelte';
+  import DocumentsSection from '$lib/components/DocumentsSection.svelte';
   import type { Activity, EntryKind, EntryWithRecurrence, RecurrenceFrequency } from '$lib/types.js';
+
+  type SortKey = 'category' | 'due_date';
+  let sortBy: SortKey = 'due_date';
+
+  function sortRecurring(list: EntryWithRecurrence[], by: SortKey): EntryWithRecurrence[] {
+    const copy = [...list];
+    if (by === 'category') {
+      copy.sort((a, b) => a.category.localeCompare(b.category) || a.id - b.id);
+    } else {
+      copy.sort((a, b) => nextDueIso(a).localeCompare(nextDueIso(b)) || a.id - b.id);
+    }
+    return copy;
+  }
+
+  function sortOneTime(list: EntryWithRecurrence[], by: SortKey): EntryWithRecurrence[] {
+    const copy = [...list];
+    if (by === 'category') {
+      copy.sort((a, b) => a.category.localeCompare(b.category) || b.date.localeCompare(a.date));
+    } else {
+      copy.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+    }
+    return copy;
+  }
 
   let personalActivity: Activity | null = null;
   let chartMonths = 6;
@@ -36,9 +60,12 @@
   $: if (personalActivity) refreshCharts(chartMonths);
 
   $: personalEntries = $entries;
-  $: recurringExpenses = personalEntries.filter((e) => e.recurrence && e.kind === 'EXPENSE');
-  $: recurringIncome   = personalEntries.filter((e) => e.recurrence && e.kind === 'INCOME');
-  $: oneTime           = personalEntries.filter((e) => !e.recurrence);
+  $: recurringExpensesRaw = personalEntries.filter((e) => e.recurrence && e.kind === 'EXPENSE');
+  $: recurringIncomeRaw   = personalEntries.filter((e) => e.recurrence && e.kind === 'INCOME');
+  $: oneTimeRaw           = personalEntries.filter((e) => !e.recurrence);
+  $: recurringExpenses = sortRecurring(recurringExpensesRaw, sortBy);
+  $: recurringIncome   = sortRecurring(recurringIncomeRaw, sortBy);
+  $: oneTime           = sortOneTime(oneTimeRaw, sortBy);
 
   $: monthlyBurn   = recurringExpenses.reduce((s, e) => s + monthlyAmountCents(e.amount_cents, e.recurrence!.frequency, e.recurrence!.interval), 0);
   $: monthlyIncome = recurringIncome.reduce((s, e) => s + monthlyAmountCents(e.amount_cents, e.recurrence!.frequency, e.recurrence!.interval), 0);
@@ -166,7 +193,12 @@
 {:else}
   <section class="section-header">
     <h2>Personal</h2>
-    <div class="row right" style="gap: 0.3rem;">
+    <div class="row right" style="gap: 0.3rem; flex-wrap: wrap;">
+      <span class="muted" style="font-size: 0.85rem; align-self: center;">Sort:</span>
+      <select bind:value={sortBy} style="width: auto;">
+        <option value="due_date">Due date</option>
+        <option value="category">Category</option>
+      </select>
       <button class="primary" on:click={() => openAdd('EXPENSE', true)}>+ Recurring bill</button>
       <button on:click={() => openAdd('INCOME', true)}>+ Recurring income</button>
       <button on:click={() => openAdd('EXPENSE', false)}>+ One-time</button>
@@ -367,6 +399,12 @@
       </div>
     {/if}
   </div>
+
+  <section class="section-header" style="margin-top: 1.5rem;">
+    <h3 style="margin: 0; font-size: 1.05rem;">Documents</h3>
+    <span class="muted" style="font-size: 0.85rem;">receipts, bills, statements</span>
+  </section>
+  <DocumentsSection activityId={personalActivity.id} />
 {/if}
 
 {#if showForm}
