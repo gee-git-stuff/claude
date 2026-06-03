@@ -20,7 +20,7 @@ export function flashToast(msg: string) {
 }
 
 export async function refreshAll() {
-  await Promise.all([refreshActivities(), refreshEntries(), refreshAccounts(), refreshActions()]);
+  await Promise.all([refreshActivities(), refreshAccounts(), refreshActions()]);
 }
 
 export async function refreshCharts(months: number) {

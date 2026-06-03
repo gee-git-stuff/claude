@@ -13,6 +13,7 @@
   $: id = Number($page.params.id);
   $: activity = $activities.find((a) => a.id === id);
   $: totalsRow = $totals.find((t) => t.activity_id === id);
+  $: visibleEntries = $entries.filter((e) => e.activity_id === id);
 
   onMount(() => { refreshAll().then(() => refreshEntries(id)); refreshCharts(chartMonths); });
   $: if (id) refreshEntries(id);
@@ -138,7 +139,7 @@
     </div>
   </div>
 
-  {#if $entries.length === 0}
+  {#if visibleEntries.length === 0}
     <div class="card"><p class="muted">No entries yet. Add an expense or income above.</p></div>
   {:else}
     <div class="card" style="padding: 0;">
@@ -153,7 +154,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each $entries as e (e.id)}
+          {#each visibleEntries as e (e.id)}
             <tr>
               <td>{formatDate(e.date)}</td>
               <td>
@@ -177,7 +178,7 @@
     </div>
   {/if}
 
-  {#if $entries.length > 0}
+  {#if visibleEntries.length > 0}
     <section class="section-header" style="margin-top: 2rem;">
       <h2>Trends</h2>
       <span class="muted">last {chartMonths} month{chartMonths === 1 ? '' : 's'}</span>

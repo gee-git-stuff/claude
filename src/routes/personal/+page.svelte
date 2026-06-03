@@ -59,7 +59,9 @@
   onMount(init);
   $: if (personalActivity) refreshCharts(chartMonths);
 
-  $: personalEntries = $entries;
+  $: personalEntries = personalActivity
+    ? $entries.filter((e) => e.activity_id === personalActivity!.id)
+    : [];
   $: recurringExpensesRaw = personalEntries.filter((e) => e.recurrence && e.kind === 'EXPENSE');
   $: recurringIncomeRaw   = personalEntries.filter((e) => e.recurrence && e.kind === 'INCOME');
   $: oneTimeRaw           = personalEntries.filter((e) => !e.recurrence);
