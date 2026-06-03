@@ -120,6 +120,11 @@ db.exec(`
     uploaded_at   TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_documents_activity ON documents(activity_id);
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
 
 function ensureColumn(table: string, column: string, ddl: string) {

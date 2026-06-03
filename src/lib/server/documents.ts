@@ -76,6 +76,11 @@ export function deleteDocument(id: number): boolean {
   return true;
 }
 
+export function linkDocumentToEntry(docId: number, entryId: number | null): boolean {
+  const r = db.prepare(`UPDATE documents SET entry_id = ? WHERE id = ?`).run(entryId, docId);
+  return r.changes > 0;
+}
+
 function guessExt(mime: string): string {
   switch (mime) {
     case 'image/jpeg': return '.jpg';

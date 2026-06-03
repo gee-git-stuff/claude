@@ -31,6 +31,7 @@
       <a href="/calendar"   class:active={isActive('/calendar')}>Calendar</a>
       <a href="/accounts"   class:active={isActive('/accounts')}>Accounts</a>
       <a href="/history"    class:active={isActive('/history')}>History</a>
+      <a href="/settings"   class:active={isActive('/settings')}>Settings</a>
     </nav>
     <div class="toolbar">
       <button on:click={doUndo} disabled={!$canUndo} title="Undo (Ctrl+Z)">↶ Undo</button>

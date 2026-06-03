@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { flashToast } from '$lib/stores.js';
-  import type { Document } from '$lib/types.js';
+  import { activities, refreshActivities, refreshActions, flashToast } from '$lib/stores.js';
+  import { CATEGORIES, PERSONAL_CATEGORIES, formatMoney, parseMoney, todayIso } from '$lib/format.js';
+  import type { Document, EntryKind } from '$lib/types.js';
 
   export let activityId: number;
 
@@ -9,6 +10,25 @@
   let dragOver = false;
   let uploading = false;
   let fileInput: HTMLInputElement;
+
+  let scanning: Record<number, boolean> = {};
+  let showReview = false;
+  let reviewDocId: number | null = null;
+  let reviewActivityId: number = activityId;
+  let reviewKind: EntryKind = 'EXPENSE';
+  let reviewAmount = '';
+  let reviewDate = todayIso();
+  let reviewCategory = 'Other';
+  let reviewNote = '';
+  let reviewConfidence: 'high' | 'medium' | 'low' = 'medium';
+
+  $: categoryOptions = (() => {
+    const a = $activities.find((x) => x.id === reviewActivityId);
+    const base = a?.type === 'PERSONAL' ? PERSONAL_CATEGORIES : CATEGORIES;
+    const merged = new Set<string>(base);
+    if (reviewCategory) merged.add(reviewCategory);
+    return [...merged];
+  })();
 
   async function load() {
     if (!activityId) return;
@@ -69,6 +89,66 @@
       flashToast('Document deleted');
       await load();
     }
+  }
+
+  async function scan(d: Document) {
+    if ($activities.length === 0) await refreshActivities();
+    scanning = { ...scanning, [d.id]: true };
+    try {
+      const r = await fetch(`/api/documents/${d.id}/scan`, { method: 'POST' });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({ message: 'Scan failed' }));
+        flashToast(j.message ?? 'Scan failed');
+        return;
+      }
+      const j = await r.json() as { document_id: number; activity_id: number; result: { vendor: string; date: string; total_cents: number; suggested_category: string; kind: EntryKind; notes: string; confidence: 'high' | 'medium' | 'low' } };
+      reviewDocId = d.id;
+      reviewActivityId = d.activity_id;
+      reviewKind = j.result.kind;
+      reviewAmount = (j.result.total_cents / 100).toFixed(2);
+      reviewDate = j.result.date || todayIso();
+      reviewCategory = j.result.suggested_category || 'Other';
+      const vendor = j.result.vendor;
+      reviewNote = [vendor, j.result.notes].filter(Boolean).join(' — ').slice(0, 200);
+      reviewConfidence = j.result.confidence;
+      showReview = true;
+    } catch (e) {
+      flashToast(e instanceof Error ? e.message : 'Scan failed');
+    } finally {
+      scanning = { ...scanning, [d.id]: false };
+    }
+  }
+
+  async function createEntryFromScan() {
+    if (reviewDocId == null) return;
+    const body = {
+      activity_id: reviewActivityId,
+      kind: reviewKind,
+      amount_cents: parseMoney(reviewAmount),
+      date: reviewDate,
+      category: reviewCategory,
+      note: reviewNote,
+      recurrence: null
+    };
+    const r = await fetch('/api/entries', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) { flashToast('Could not create entry'); return; }
+    const j = await r.json() as { entry: { id: number } };
+    await fetch(`/api/documents/${reviewDocId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ entry_id: j.entry.id })
+    });
+    flashToast('Entry created and linked');
+    showReview = false;
+    await refreshActions();
+  }
+
+  function canScan(d: Document): boolean {
+    return d.mime_type.startsWith('image/') && !d.entry_id;
   }
 
   function isImage(mime: string): boolean {
@@ -135,11 +215,69 @@
           <div class="muted" style="font-size: 0.72rem;">{formatSize(d.size_bytes)}</div>
         </div>
         <div class="doc-actions">
+          {#if canScan(d)}
+            <button on:click={() => scan(d)} disabled={!!scanning[d.id]} title="Extract expense data with local AI">
+              {scanning[d.id] ? '…' : '🔍 Scan'}
+            </button>
+          {:else if d.entry_id}
+            <span class="chip" title="Already linked to an entry">linked</span>
+          {/if}
           <a href="/api/documents/{d.id}?download=1" class="chip">⬇</a>
           <button class="danger" on:click={() => removeDoc(d)} title="Delete">×</button>
         </div>
       </div>
     {/each}
+  </div>
+{/if}
+
+{#if showReview && reviewDocId != null}
+  <div class="modal-bg" on:click|self={() => (showReview = false)} role="dialog">
+    <div class="modal">
+      <h3 style="margin-top: 0;">Review extracted data</h3>
+      <p class="muted" style="font-size: 0.85rem;">
+        Confidence: <span class="chip" style="background: {reviewConfidence === 'high' ? 'var(--good)' : reviewConfidence === 'low' ? 'var(--bad)' : 'var(--warn)'}; color: white;">{reviewConfidence}</span>
+        — review and edit before creating the entry.
+      </p>
+      <div class="col">
+        <div>
+          <label>Activity</label>
+          <select bind:value={reviewActivityId}>
+            {#each $activities as a}<option value={a.id}>{a.name}</option>{/each}
+          </select>
+        </div>
+        <div>
+          <label>Kind</label>
+          <select bind:value={reviewKind}>
+            <option value="EXPENSE">Expense</option>
+            <option value="INCOME">Income</option>
+          </select>
+        </div>
+        <div>
+          <label>Amount (USD)</label>
+          <input type="text" inputmode="decimal" bind:value={reviewAmount} />
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" bind:value={reviewDate} />
+        </div>
+        <div>
+          <label>Category</label>
+          <select bind:value={reviewCategory}>
+            {#each categoryOptions as c}<option value={c}>{c}</option>{/each}
+          </select>
+        </div>
+        <div>
+          <label>Note</label>
+          <input bind:value={reviewNote} />
+        </div>
+        <div class="row" style="margin-top: 0.5rem;">
+          <button on:click={() => (showReview = false)}>Cancel</button>
+          <button class="primary right" on:click={createEntryFromScan} disabled={!reviewAmount.trim()}>
+            Create entry & link
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 {/if}
 
