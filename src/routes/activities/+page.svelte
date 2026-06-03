@@ -1,15 +1,8 @@
 <script lang="ts">
   import { activities, refreshActivities, flashToast, refreshActions } from '$lib/stores.js';
   import { ACTIVITY_COLORS } from '$lib/format.js';
+  import { ALL_TYPES, TYPE_LABELS, TYPE_DESCRIPTIONS } from '$lib/activityTypes.js';
   import type { ActivityType } from '$lib/types.js';
-
-  const TYPE_LABELS: Record<ActivityType, string> = {
-    AIRBNB: 'AirBnB',
-    TURO: 'Turo',
-    PROPERTY: 'Property',
-    PERSONAL: 'Personal',
-    CUSTOM: 'Other'
-  };
 
   let showForm = false;
   let editingId: number | null = null;
@@ -111,23 +104,38 @@
         <div>
           <label>Type</label>
           <select bind:value={type}>
-            <option value="AIRBNB">AirBnB</option>
-            <option value="TURO">Turo</option>
-            <option value="PROPERTY">Property (personal/tenant)</option>
-            <option value="PERSONAL">Personal finance</option>
-            <option value="CUSTOM">Other</option>
+            {#each ALL_TYPES as t}
+              <option value={t}>{TYPE_LABELS[t]} — {TYPE_DESCRIPTIONS[t]}</option>
+            {/each}
           </select>
         </div>
         <div>
           <label>Color</label>
-          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             {#each ACTIVITY_COLORS as c}
               <button
                 type="button"
-                aria-label="Pick color"
+                aria-label="Pick color {c}"
+                aria-pressed={color === c}
                 on:click={() => (color = c)}
-                style="width: 1.6rem; height: 1.6rem; border-radius: 50%; background: {c}; padding: 0; border: 2px solid {color === c ? 'white' : 'transparent'};"
-              ></button>
+                style="
+                  width: 2rem;
+                  height: 2rem;
+                  border-radius: 50%;
+                  background: {c};
+                  padding: 0;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-size: 1rem;
+                  font-weight: 700;
+                  border: 3px solid {color === c ? 'var(--text)' : 'transparent'};
+                  outline: {color === c ? '2px solid ' + c : 'none'};
+                  outline-offset: 1px;
+                "
+              >{color === c ? '✓' : ''}</button>
             {/each}
           </div>
         </div>

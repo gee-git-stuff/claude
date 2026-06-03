@@ -267,6 +267,111 @@ label {
   color: white;
 }
 
+/* Stronger, clearer selection-state chip. Use for any pick-multiple UI. */
+.select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  user-select: none;
+  font: inherit;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.select-chip:hover {
+  border-color: var(--accent-2);
+  color: var(--text);
+}
+.select-chip:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+.select-chip.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 500;
+}
+.select-chip.selected:hover {
+  filter: brightness(1.1);
+  border-color: var(--accent);
+  color: white;
+}
+.select-chip .checkbox {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 3px;
+  border: 1.5px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.select-chip.selected .checkbox {
+  background: white;
+  color: var(--accent);
+  border-color: white;
+}
+.select-chip .count {
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+/* Section / collapse panel reusable across pages */
+.filter-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+.panel-toggle {
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.9rem;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.panel-toggle:hover {
+  background: var(--bg-3);
+}
+.panel-body {
+  padding: 0.4rem 0.9rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+.filter-group {
+  margin-top: 0.75rem;
+}
+.filter-group-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chip-row + .chip-row {
+  margin-top: 0.4rem;
+}
+
 @media (max-width: 640px) {
   .app-header { padding: 0.5rem 0.75rem; }
   .app-main { padding: 0.75rem; }

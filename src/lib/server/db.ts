@@ -36,7 +36,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS activities (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     name        TEXT NOT NULL,
-    type        TEXT NOT NULL CHECK (type IN ('AIRBNB','TURO','PROPERTY','PERSONAL','CUSTOM')),
+    type        TEXT NOT NULL CHECK (type IN ('AIRBNB','TURO','PROPERTY','PERSONAL','HOUSE_FLIP','BUSINESS','CUSTOM')),
     color       TEXT NOT NULL DEFAULT '#3b82f6',
     notes       TEXT NOT NULL DEFAULT '',
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -137,15 +137,16 @@ function ensureColumn(table: string, column: string, ddl: string) {
 ensureColumn('accounts', 'csv_mapping_json', `csv_mapping_json TEXT NOT NULL DEFAULT '{}'`);
 ensureColumn('entries',  'bank_txn_id',      `bank_txn_id INTEGER REFERENCES bank_txns(id) ON DELETE SET NULL`);
 
+const REQUIRED_ACTIVITY_TYPES = ['AIRBNB','TURO','PROPERTY','PERSONAL','HOUSE_FLIP','BUSINESS','CUSTOM'];
 const activitiesSchema = (db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='activities'`).get() as { sql: string } | undefined)?.sql ?? '';
-if (activitiesSchema && !activitiesSchema.includes('PERSONAL')) {
+if (activitiesSchema && REQUIRED_ACTIVITY_TYPES.some((t) => !activitiesSchema.includes(`'${t}'`))) {
   db.exec(`
     PRAGMA foreign_keys = OFF;
     BEGIN;
     CREATE TABLE activities_new (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       name        TEXT NOT NULL,
-      type        TEXT NOT NULL CHECK (type IN ('AIRBNB','TURO','PROPERTY','PERSONAL','CUSTOM')),
+      type        TEXT NOT NULL CHECK (type IN ('AIRBNB','TURO','PROPERTY','PERSONAL','HOUSE_FLIP','BUSINESS','CUSTOM')),
       color       TEXT NOT NULL DEFAULT '#3b82f6',
       notes       TEXT NOT NULL DEFAULT '',
       created_at  TEXT NOT NULL DEFAULT (datetime('now'))

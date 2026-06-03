@@ -1,4 +1,4 @@
-export type ActivityType = 'AIRBNB' | 'TURO' | 'PROPERTY' | 'PERSONAL' | 'CUSTOM';
+export type ActivityType = 'AIRBNB' | 'TURO' | 'PROPERTY' | 'PERSONAL' | 'HOUSE_FLIP' | 'BUSINESS' | 'CUSTOM';
 
 export interface Activity {
   id: number;
