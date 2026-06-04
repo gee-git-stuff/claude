@@ -1,15 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { activities, totals, entries, charts, refreshActivities, refreshCharts, refreshEntries } from '$lib/stores.js';
-  import { formatMoney, formatDate } from '$lib/format.js';
+  import { activities, totals, entries, charts, refreshActivities, refreshActions, refreshCharts, refreshEntries, flashToast } from '$lib/stores.js';
+  import { CATEGORIES, PERSONAL_CATEGORIES, formatMoney, formatDate, parseMoney, todayIso } from '$lib/format.js';
   import { categoryDoughnutData, moneyAxis, moneyTooltip, netOverTimeData, profitabilityBarData } from '$lib/chartHelpers.js';
   import { ALL_TYPES, TYPE_LABELS } from '$lib/activityTypes.js';
   import Chart from '$lib/components/Chart.svelte';
-  import type { ActivityType, EntryWithRecurrence } from '$lib/types.js';
+  import type { ActivityType, EntryKind, EntryWithRecurrence, RecurrenceFrequency } from '$lib/types.js';
 
   let selectedIds: Set<number> = new Set();
   let expanded:    Set<number> = new Set();
   let filterOpen = true;
+  let itemSearch = '';
+  type SortKey = 'date_desc' | 'date_asc' | 'amount_desc' | 'category';
+  let entrySort: SortKey = 'date_desc';
   let months = 12;
   let initialized = false;
 
@@ -96,6 +99,79 @@
     return map;
   })();
 
+  function sortEntries(list: EntryWithRecurrence[], by: SortKey): EntryWithRecurrence[] {
+    const copy = [...list];
+    switch (by) {
+      case 'date_desc':    copy.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id); break;
+      case 'date_asc':     copy.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id); break;
+      case 'amount_desc':  copy.sort((a, b) => b.amount_cents - a.amount_cents); break;
+      case 'category':     copy.sort((a, b) => a.category.localeCompare(b.category) || b.date.localeCompare(a.date)); break;
+    }
+    return copy;
+  }
+
+  $: filteredItems = (() => {
+    const q = itemSearch.trim().toLowerCase();
+    if (!q) return $activities;
+    return $activities.filter((a) => a.name.toLowerCase().includes(q));
+  })();
+
+  let showAdd = false;
+  let addActivityId: number | null = null;
+  let addKind: EntryKind = 'EXPENSE';
+  let addAmount = '';
+  let addDate = todayIso();
+  let addCategory = 'Other';
+  let addNote = '';
+  let addRecurring = false;
+  let addFreq: RecurrenceFrequency = 'MONTHLY';
+  let addInterval = 1;
+  let addEnd = '';
+
+  function openAdd(activityId: number, kind: EntryKind) {
+    addActivityId = activityId;
+    addKind = kind;
+    addAmount = '';
+    addDate = todayIso();
+    const a = $activities.find((x) => x.id === activityId);
+    const base = a?.type === 'PERSONAL' ? PERSONAL_CATEGORIES : CATEGORIES;
+    addCategory = kind === 'INCOME' ? (base.find((c) => c.toLowerCase().includes('income') || c.toLowerCase().includes('salary')) ?? base[0]) : base[0];
+    addNote = '';
+    addRecurring = false;
+    addFreq = 'MONTHLY';
+    addInterval = 1;
+    addEnd = '';
+    showAdd = true;
+  }
+
+  $: addCategoryOptions = (() => {
+    const a = $activities.find((x) => x.id === addActivityId);
+    return a?.type === 'PERSONAL' ? PERSONAL_CATEGORIES : CATEGORIES;
+  })();
+
+  async function saveAdd() {
+    if (addActivityId == null || !addAmount.trim()) return;
+    const body = {
+      activity_id: addActivityId,
+      kind: addKind,
+      amount_cents: parseMoney(addAmount),
+      date: addDate,
+      category: addCategory,
+      note: addNote,
+      recurrence: addRecurring ? { frequency: addFreq, interval: addInterval, end_date: addEnd || null } : null
+    };
+    const r = await fetch('/api/entries', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!r.ok) { flashToast('Could not add'); return; }
+    flashToast(`${addKind === 'EXPENSE' ? 'Expense' : 'Income'} added`);
+    showAdd = false;
+    await refreshEntries();
+    await refreshActivities();
+    await refreshActions();
+    await refreshCharts(months);
+  }
+
   $: chartsData = $charts;
   $: filteredMonthly = chartsData ? chartsData.monthly.filter((r) => selectedIds.has(r.activity_id)) : [];
   $: netLineData      = chartsData ? netOverTimeData(chartsData.labels, filteredMonthly, visibleActivities) : null;
@@ -149,8 +225,25 @@
             No activities yet. <a href="/activities">Create one →</a>
           </p>
         {:else}
+          {#if $activities.length > 6}
+            <div style="position: relative; max-width: 300px; margin-bottom: 0.5rem;">
+              <input
+                type="text"
+                bind:value={itemSearch}
+                placeholder="Search items by name…"
+                style="padding-right: 1.8rem;"
+              />
+              {#if itemSearch}
+                <button
+                  on:click={() => (itemSearch = '')}
+                  aria-label="Clear search"
+                  style="position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%); padding: 0.15rem 0.4rem; background: transparent; border: none; color: var(--text-dim);"
+                >×</button>
+              {/if}
+            </div>
+          {/if}
           <div class="chip-row">
-            {#each $activities as a (a.id)}
+            {#each filteredItems as a (a.id)}
               {@const sel = selectedIds.has(a.id)}
               <button
                 class="select-chip"
@@ -163,6 +256,9 @@
                 {a.name}
               </button>
             {/each}
+            {#if filteredItems.length === 0}
+              <span class="muted" style="font-size: 0.85rem; padding: 0.4rem 0;">No items match "{itemSearch}".</span>
+            {/if}
           </div>
           <div class="chip-row" style="margin-top: 0.5rem;">
             <button on:click={selectAll}>Select all</button>
@@ -217,7 +313,14 @@
     </div>
   </div>
 
-  <div class="row" style="justify-content: flex-end; gap: 0.3rem; margin-bottom: 0.5rem;">
+  <div class="row" style="justify-content: flex-end; gap: 0.4rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+    <span class="muted" style="font-size: 0.85rem; align-self: center;">Sort entries:</span>
+    <select bind:value={entrySort} style="width: auto;">
+      <option value="date_desc">Newest first</option>
+      <option value="date_asc">Oldest first</option>
+      <option value="amount_desc">Largest amount</option>
+      <option value="category">Category A–Z</option>
+    </select>
     <button on:click={expandAll}   disabled={visibleActivities.length === 0 || expanded.size === visibleActivities.length}>Expand all</button>
     <button on:click={collapseAll} disabled={expanded.size === 0}>Collapse all</button>
   </div>
@@ -240,15 +343,20 @@
       </button>
 
       {#if isExpanded}
+        {@const sorted = sortEntries(items, entrySort)}
         <div class="activity-body">
-          <div class="row" style="gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+          <div class="row" style="gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center;">
             <span class="muted" style="font-size: 0.85rem;">
               {items.length} {items.length === 1 ? 'entry' : 'entries'}
             </span>
-            <a href="/activities/{a.id}" class="right" style="font-size: 0.85rem;">Open detail page →</a>
+            <div class="right row" style="gap: 0.3rem;">
+              <button class="primary" on:click|stopPropagation={() => openAdd(a.id, 'EXPENSE')}>+ Expense</button>
+              <button on:click|stopPropagation={() => openAdd(a.id, 'INCOME')}>+ Income</button>
+              <a href="/activities/{a.id}" class="chip" style="text-decoration: none; padding: 0.35rem 0.7rem;">Detail →</a>
+            </div>
           </div>
           {#if items.length === 0}
-            <p class="muted" style="font-size: 0.9rem;">No entries yet for this item. <a href="/activities/{a.id}">Add one →</a></p>
+            <p class="muted" style="font-size: 0.9rem;">No entries yet for this item — use the buttons above to add one.</p>
           {:else}
             <div style="overflow-x: auto;">
               <table class="table compact-table">
@@ -256,7 +364,7 @@
                   <tr><th>Date</th><th>Category</th><th>Note</th><th style="text-align: right;">Amount</th></tr>
                 </thead>
                 <tbody>
-                  {#each items.slice(0, 12) as e (e.id)}
+                  {#each sorted.slice(0, 12) as e (e.id)}
                     <tr>
                       <td>{formatDate(e.date)}</td>
                       <td><span class="chip">{e.category || '—'}</span>{#if e.recurrence}<span class="chip" style="margin-left: 0.25rem;">↻</span>{/if}</td>
@@ -271,7 +379,7 @@
             </div>
             {#if items.length > 12}
               <p class="muted" style="font-size: 0.8rem; text-align: center; margin: 0.4rem 0 0;">
-                Showing 12 most recent of {items.length}. <a href="/activities/{a.id}">View all →</a>
+                Showing 12 of {items.length} entries. <a href="/activities/{a.id}">View all →</a>
               </p>
             {/if}
           {/if}
@@ -311,6 +419,76 @@
       </div>
     </div>
   {/if}
+{/if}
+
+{#if showAdd && addActivityId != null}
+  {@const a = $activities.find((x) => x.id === addActivityId)}
+  <div class="modal-bg" on:click|self={() => (showAdd = false)} role="dialog">
+    <div class="modal">
+      <h3 style="margin-top: 0;">
+        Add {addKind === 'EXPENSE' ? 'expense' : 'income'} to
+        <span style="color: {a?.color};">{a?.name}</span>
+      </h3>
+      <div class="col">
+        <div>
+          <label>Kind</label>
+          <select bind:value={addKind}>
+            <option value="EXPENSE">Expense</option>
+            <option value="INCOME">Income</option>
+          </select>
+        </div>
+        <div>
+          <label>Amount (USD)</label>
+          <input type="text" inputmode="decimal" bind:value={addAmount} placeholder="0.00" />
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" bind:value={addDate} />
+        </div>
+        <div>
+          <label>Category</label>
+          <select bind:value={addCategory}>
+            {#each addCategoryOptions as c}<option value={c}>{c}</option>{/each}
+          </select>
+        </div>
+        <div>
+          <label>Note</label>
+          <input bind:value={addNote} placeholder="optional" />
+        </div>
+        <div>
+          <label>
+            <input type="checkbox" bind:checked={addRecurring} style="width: auto; margin-right: 0.4rem;" />
+            Recurring
+          </label>
+        </div>
+        {#if addRecurring}
+          <div class="row" style="gap: 0.5rem;">
+            <div class="grow">
+              <label>Frequency</label>
+              <select bind:value={addFreq}>
+                <option value="DAILY">Daily</option>
+                <option value="WEEKLY">Weekly</option>
+                <option value="MONTHLY">Monthly</option>
+                <option value="ANNUAL">Annual</option>
+              </select>
+            </div>
+            <div style="width: 5.5rem;">
+              <label>Every</label>
+              <input type="number" min="1" bind:value={addInterval} />
+            </div>
+          </div>
+          <div>
+            <label>End date <span class="muted">(optional)</span></label>
+            <input type="date" bind:value={addEnd} />
+          </div>
+        {/if}
+        <div class="row" style="margin-top: 0.5rem;">
+          <button on:click={() => (showAdd = false)}>Cancel</button>
+          <button class="primary right" on:click={saveAdd} disabled={!addAmount.trim()}>Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {/if}
 
 <style>
