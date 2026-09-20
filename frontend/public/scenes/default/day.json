@@ -1,0 +1,80 @@
+{
+  "key": "day",
+  "label": "Sunny Meadow Window",
+  "feel": "A cozy cottage window looking out over rolling meadow hills.",
+  "palette": {
+    "skyTop": "#3f8fd8",
+    "skyMid": "#7ec2ec",
+    "skyBottom": "#cdeaff",
+    "ground": "#6fae4e",
+    "accent": "#7a4a2b"
+  },
+  "accent": "window-frame",
+  "starChart": false,
+  "hotspots": [
+    {
+      "id": "sun",
+      "label": "The Sun",
+      "x": 76,
+      "y": 20,
+      "radius": 7,
+      "icon": "sun",
+      "lesson": {
+        "title": "Why does the Sun move across the sky?",
+        "fact": "The Sun doesn't actually move around us. Earth spins around like a top once every day, so the Sun just looks like it's crossing the sky!",
+        "question": "What is actually moving to make the Sun look like it rises and sets?",
+        "choices": ["The Sun is moving", "The Earth is spinning", "The clouds push it"],
+        "answerIndex": 1,
+        "successMessage": "That's right! Earth spins all day and all night, like a merry-go-round in space."
+      }
+    },
+    {
+      "id": "clouds",
+      "label": "The Clouds",
+      "x": 30,
+      "y": 22,
+      "radius": 8,
+      "icon": "cloud",
+      "lesson": {
+        "title": "What are clouds made of?",
+        "fact": "Clouds are made of tiny water droplets or ice crystals, so small and light that they float on the air!",
+        "question": "What are clouds mostly made of?",
+        "choices": ["Cotton", "Tiny water droplets", "Smoke"],
+        "answerIndex": 1,
+        "successMessage": "Yes! Millions of tiny water droplets floating together make one big fluffy cloud."
+      }
+    },
+    {
+      "id": "tree",
+      "label": "The Big Tree",
+      "x": 55,
+      "y": 62,
+      "radius": 9,
+      "icon": "tree",
+      "lesson": {
+        "title": "How do trees show what season it is?",
+        "fact": "Trees change with the seasons: green leaves in summer, colorful leaves in fall, bare branches in winter, and fresh buds in spring!",
+        "question": "In which season do most trees grow their leaves back?",
+        "choices": ["Winter", "Spring", "Fall"],
+        "answerIndex": 1,
+        "successMessage": "Exactly! Spring is when trees wake up and grow fresh new leaves."
+      }
+    },
+    {
+      "id": "hills",
+      "label": "The Hills",
+      "x": 12,
+      "y": 68,
+      "radius": 9,
+      "icon": "hill",
+      "lesson": {
+        "title": "Where does rain come from?",
+        "fact": "The Sun warms up water in lakes and oceans, turning it into invisible vapor that floats up and forms clouds. When clouds get heavy, the water falls back down as rain!",
+        "question": "What is it called when the Sun turns water into vapor that rises into the sky?",
+        "choices": ["Freezing", "Evaporation", "Melting"],
+        "answerIndex": 1,
+        "successMessage": "Correct! That's evaporation, the first step of the water cycle."
+      }
+    }
+  ]
+}

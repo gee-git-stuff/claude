@@ -1,0 +1,52 @@
+{
+  "key": "dawn",
+  "label": "Sunrise Porch",
+  "feel": "A quiet porch facing east, watching the sky wake up.",
+  "palette": {
+    "skyTop": "#5c6ea8",
+    "skyMid": "#e79a6b",
+    "skyBottom": "#ffd8a8",
+    "ground": "#8a7a53",
+    "accent": "#5b3a29"
+  },
+  "accent": "porch-rail",
+  "starChart": false,
+  "hotspots": [
+    {
+      "id": "horizon-glow",
+      "label": "The Glowing Horizon",
+      "x": 60,
+      "y": 55,
+      "radius": 10,
+      "icon": "glow",
+      "lesson": {
+        "title": "Why is sunrise pink and orange?",
+        "fact": "At sunrise, sunlight travels through a lot of air to reach your eyes. The air scatters away the blue light, so the reds, pinks, and oranges are what's left for us to see!",
+        "question": "Why do sunrises look pink and orange instead of blue?",
+        "choices": [
+          "Blue light gets scattered away by the air",
+          "The Sun changes color",
+          "Birds paint the sky"
+        ],
+        "answerIndex": 0,
+        "successMessage": "Yes! Sunlight has to pass through more sky at sunrise, so only the warm colors make it through."
+      }
+    },
+    {
+      "id": "rooster",
+      "label": "The Rooster",
+      "x": 22,
+      "y": 74,
+      "radius": 8,
+      "icon": "bird",
+      "lesson": {
+        "title": "Why do roosters crow at dawn?",
+        "fact": "Roosters have an internal clock tied to light. As the sky starts to brighten, that clock tells them it's time to greet the new day!",
+        "question": "What tells a rooster it's time to crow?",
+        "choices": ["A loud alarm clock", "Its internal clock reacting to light", "Other farm animals"],
+        "answerIndex": 1,
+        "successMessage": "Right! Animals have internal clocks too, tuned to sunrise and sunset."
+      }
+    }
+  ]
+}

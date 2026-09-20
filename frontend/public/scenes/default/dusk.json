@@ -1,0 +1,52 @@
+{
+  "key": "dusk",
+  "label": "Sunset Window",
+  "feel": "A warm window with a lamp glowing inside as the sky settles into evening colors.",
+  "palette": {
+    "skyTop": "#2c3968",
+    "skyMid": "#a1548c",
+    "skyBottom": "#f0925a",
+    "ground": "#4b4038",
+    "accent": "#3d2a20"
+  },
+  "accent": "window-frame",
+  "starChart": false,
+  "hotspots": [
+    {
+      "id": "sunset-glow",
+      "label": "The Setting Sun",
+      "x": 68,
+      "y": 58,
+      "radius": 10,
+      "icon": "glow",
+      "lesson": {
+        "title": "Why does the sunset look red?",
+        "fact": "Just like sunrise, sunset light travels through lots of air, so blue light scatters away and warm red and orange light reaches your eyes.",
+        "question": "Sunrise and sunset share the same warm colors because...",
+        "choices": [
+          "The Sun is farther away then",
+          "Sunlight passes through more air at both times",
+          "The sky changes paint each night"
+        ],
+        "answerIndex": 1,
+        "successMessage": "Exactly! Low-in-the-sky sunlight always has to travel through more air."
+      }
+    },
+    {
+      "id": "evening-star",
+      "label": "The Evening Star",
+      "x": 30,
+      "y": 25,
+      "radius": 7,
+      "icon": "star",
+      "lesson": {
+        "title": "What's the first 'star' you see at dusk?",
+        "fact": "The brightest point you often see right after sunset isn't a star at all — it's usually the planet Venus, sometimes called the 'Evening Star'!",
+        "question": "The 'Evening Star' seen just after sunset is actually...",
+        "choices": ["The planet Venus", "A distant star", "The Moon"],
+        "answerIndex": 0,
+        "successMessage": "Yes! Venus is so close and reflective that it outshines every true star in the sky."
+      }
+    }
+  ]
+}

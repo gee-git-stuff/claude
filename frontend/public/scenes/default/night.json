@@ -1,0 +1,15 @@
+{
+  "key": "night",
+  "label": "Starlit Sky",
+  "feel": "A dark window open to the real night sky above Merrimack, star chart and all.",
+  "palette": {
+    "skyTop": "#01020a",
+    "skyMid": "#050a24",
+    "skyBottom": "#101a3a",
+    "ground": "#0a0a10",
+    "accent": "#c9c9d8"
+  },
+  "accent": "window-frame",
+  "starChart": true,
+  "hotspots": []
+}
