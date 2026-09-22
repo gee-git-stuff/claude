@@ -33,8 +33,8 @@
       "label": "The Clouds",
       "x": 30,
       "y": 22,
-      "radius": 8,
-      "icon": "cloud",
+      "radius": 6,
+      "icon": "sparkle",
       "lesson": {
         "title": "What are clouds made of?",
         "fact": "Clouds are made of tiny water droplets or ice crystals, so small and light that they float on the air!",
@@ -49,8 +49,8 @@
       "label": "The Big Tree",
       "x": 55,
       "y": 62,
-      "radius": 9,
-      "icon": "tree",
+      "radius": 6,
+      "icon": "sparkle",
       "lesson": {
         "title": "How do trees show what season it is?",
         "fact": "Trees change with the seasons: green leaves in summer, colorful leaves in fall, bare branches in winter, and fresh buds in spring!",

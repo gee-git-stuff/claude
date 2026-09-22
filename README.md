@@ -14,13 +14,23 @@ scene to trigger short kid-friendly facts and quizzes.
   `dusk` / `night`, based on real sunrise/sunset) and a weather
   *condition* (`clear` / `partly_cloudy` / `cloudy` / `fog` / `rain` /
   `snow` / `thunderstorm`).
-- **`frontend/`** — a React + TypeScript (Vite) app. The *period*
-  chooses which "room" you're looking out from (a scene config loaded
-  from JSON); the *condition* drives an independent animated overlay
-  (rain, snow, fog, drifting clouds, thunderstorm flashes) layered on
-  top. At night, a real star chart renders instead, computed live from
-  your location and the current time using
-  [astronomy-engine](https://github.com/cosinekitty/astronomy).
+- **`frontend/`** — a React + TypeScript (Vite) app. The background is a
+  real-time 3D scene (Three.js): a physically-based sky
+  ([Preetham/Hosek-Wilkie atmospheric model](https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Sky.js))
+  lit by the sun's *actual* computed position for your location and the
+  current moment — not a fixed palette. The *period* picks which
+  direction the window/porch faces (east for dawn/day to catch the
+  sunrise, west for dusk to catch the sunset) and which decorative
+  "room" accent renders; the *condition* drives an independent overlay
+  (rain, snow, fog, drifting clouds, thunderstorm flashes) on top of the
+  3D view. At night, the physical sky is swapped for a real star chart,
+  computed live from your location and the current time using
+  [astronomy-engine](https://github.com/cosinekitty/astronomy) — the
+  same library that computes the sun's position for the 3D sky. A few
+  hotspots (the sun, a decorative cloud and tree) track their actual
+  live 3D screen position rather than a fixed spot, so e.g. the "sun"
+  hotspot only appears when the sun would really be in view through that
+  window.
 
 ## Running it locally
 
@@ -96,13 +106,28 @@ frontend/
     default/         shipped scene configs (dawn/day/dusk/night)
     user/             your local overrides (gitignored is up to you)
   src/
-    components/       Scene, SkyBackground, WeatherOverlay, SceneAccent,
-                       HotspotMarker, LessonModal, StarChart, ForecastStrip
+    components/       Scene, Scene3D (the WebGL background), WeatherOverlay,
+                       SceneAccent, HotspotMarker, LessonModal, StarChart,
+                       ForecastStrip
     lib/
       sceneEngine.ts       default+user scene loader/merger
-      astronomyClient.ts   star/moon position + sky-dome projection
+      astronomyClient.ts   star/moon/sun position + sky-dome projection
       starCatalog.ts        bright-star catalog + constellation lines
+      scene3d/
+        objects.ts   ground/ridge/tree/cloud mesh builders
+        sky.ts       sun-direction math + per-condition sky tuning
 ```
+
+## A note on the 3D scene
+
+The background is real-time WebGL (Three.js) with a physically-based sky
+and real sun-driven lighting — genuinely dimensional, not a flat
+illustration. It's a stylized real-time 3D look (think a simple
+flight-sim horizon), not photograph-grade realism; that would need either
+actual photos or offline path-traced rendering, neither of which fits a
+locally-running live weather display. The camera is fixed (a "window"
+doesn't pan), which keeps hotspots simple to place and lets the sun/cloud/
+tree hotspots track their real projected screen position each update.
 
 ## Ideas for next steps
 
@@ -111,3 +136,5 @@ frontend/
   rather than one room with a weather overlay).
 - Seasonal hotspots (e.g. a different tree state per season).
 - A simple "streak" or sticker reward for answering lesson questions.
+- Render the night stars as real 3D points on the sky dome (matching the
+  day sky's dimensionality) instead of a 2D SVG overlay.

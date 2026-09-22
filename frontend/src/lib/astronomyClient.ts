@@ -15,6 +15,22 @@ export interface MoonInfo {
   phaseName: string;
 }
 
+export interface SunInfo {
+  azimuth: number;
+  altitude: number;
+}
+
+/** Real sun position for this moment/location, used to drive the
+ * physically-based sky shader and the scene's directional light -- so the
+ * 3D scene's lighting genuinely matches where the sun actually is, not
+ * just a fixed "day/dawn/dusk/night" bucket. */
+export function computeSun(date: Date, lat: number, lon: number): SunInfo {
+  const observer = new Astronomy.Observer(lat, lon, 0);
+  const equator = Astronomy.Equator(Astronomy.Body.Sun, date, observer, true, true);
+  const horizontal = Astronomy.Horizon(date, observer, equator.ra, equator.dec, "normal");
+  return { azimuth: horizontal.azimuth, altitude: horizontal.altitude };
+}
+
 const PHASE_NAMES = [
   "New Moon",
   "Waxing Crescent",
