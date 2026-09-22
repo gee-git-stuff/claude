@@ -63,10 +63,10 @@
     {
       "id": "hills",
       "label": "The Hills",
-      "x": 12,
-      "y": 68,
-      "radius": 9,
-      "icon": "hill",
+      "x": 15,
+      "y": 76,
+      "radius": 6,
+      "icon": "sparkle",
       "lesson": {
         "title": "Where does rain come from?",
         "fact": "The Sun warms up water in lakes and oceans, turning it into invisible vapor that floats up and forms clouds. When clouds get heavy, the water falls back down as rain!",
