@@ -1,11 +1,11 @@
 {
-  "name": "lingua-chat",
+  "name": "antenna-lab",
   "version": "1.0.0",
-  "description": "Interactive language learning chatbot with real-time audio translation and adaptive learning",
+  "description": "Interactive teaching tool for antenna design, starting with an interactive Smith chart",
   "scripts": {
     "start": "npx serve .",
     "test": "node tests/test.js"
   },
-  "keywords": ["language-learning", "chatbot", "speech-recognition", "translation"],
+  "keywords": ["antenna", "rf", "smith-chart", "impedance-matching", "education"],
   "license": "MIT"
 }
