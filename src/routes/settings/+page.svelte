@@ -8,6 +8,45 @@
   let checking = false;
   let saving = false;
 
+  interface BackupFile {
+    filename: string;
+    path: string;
+    size_bytes: number;
+    created_at: string;
+  }
+  let backups: BackupFile[] = [];
+  let backingUp = false;
+
+  async function loadBackups() {
+    const r = await fetch('/api/backups');
+    if (r.ok) backups = (await r.json()).backups;
+  }
+
+  async function backupNow() {
+    backingUp = true;
+    const r = await fetch('/api/backups', { method: 'POST' });
+    backingUp = false;
+    if (r.ok) {
+      const j = await r.json();
+      flashToast(`Backup saved: ${j.backup.filename}`);
+      await loadBackups();
+    } else {
+      const j = await r.json().catch(() => ({ message: 'Backup failed' }));
+      flashToast(j.message ?? 'Backup failed');
+    }
+  }
+
+  function fmtSize(b: number): string {
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${(b / 1024 / 1024).toFixed(2)} MB`;
+  }
+
+  function fmtDate(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
   async function load() {
     const r = await fetch('/api/settings');
     const j = await r.json();
@@ -36,7 +75,10 @@
     checking = false;
   }
 
-  onMount(load);
+  onMount(async () => {
+    await load();
+    await loadBackups();
+  });
 
   $: hasModel = status?.ok && status.models?.some((m) => m === ollamaModel || m.startsWith(ollamaModel + ':'));
 </script>
@@ -102,4 +144,57 @@
     <li>Save the settings above and click "Save & test connection" to verify.</li>
     <li>Then upload an image in any activity's Documents section and click "Scan with AI".</li>
   </ol>
+</div>
+
+<div class="card" style="max-width: 600px; margin-top: 1rem;">
+  <div class="row" style="align-items: center;">
+    <h3 style="margin: 0;">Local backups</h3>
+    <button class="primary right" on:click={backupNow} disabled={backingUp}>
+      {backingUp ? 'Backing up…' : 'Backup now'}
+    </button>
+  </div>
+  <p class="muted" style="font-size: 0.85rem;">
+    Snapshots of <code>data/expenses.db</code> are saved to <code>data/backups/</code>.
+    One is written automatically at server startup (once every 6 hours), and you can
+    trigger one on demand. The most recent 30 are kept.
+  </p>
+
+  {#if backups.length === 0}
+    <p class="muted" style="font-size: 0.9rem;">No backups yet.</p>
+  {:else}
+    <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius);">
+      <table class="table" style="font-size: 0.85rem;">
+        <thead>
+          <tr>
+            <th>Created</th>
+            <th>Filename</th>
+            <th style="text-align: right;">Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each backups as b (b.filename)}
+            <tr>
+              <td>{fmtDate(b.created_at)}</td>
+              <td style="font-family: ui-monospace, monospace; font-size: 0.8rem;">{b.filename}</td>
+              <td style="text-align: right;">{fmtSize(b.size_bytes)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
+
+  <details style="margin-top: 0.75rem;">
+    <summary class="muted" style="cursor: pointer; font-size: 0.85rem;">How to restore from a backup</summary>
+    <ol class="muted" style="font-size: 0.85rem; padding-left: 1.2rem; margin-top: 0.5rem;">
+      <li>Stop the dev server (Ctrl+C in the terminal running <code>npm run dev</code>).</li>
+      <li>In your project folder, copy the backup over the active DB:
+        <pre style="background: var(--bg); padding: 0.5rem; border-radius: 4px; margin: 0.4rem 0; overflow-x: auto; font-size: 0.75rem;">cp data/backups/&lt;filename&gt; data/expenses.db</pre>
+      </li>
+      <li>Start the server again with <code>npm run dev</code>. Your data is back at that snapshot.</li>
+    </ol>
+    <p class="muted" style="font-size: 0.8rem; margin-top: 0.5rem;">
+      Backups are just plain SQLite files — you can also copy them off the machine (email, USB, cloud) for safekeeping.
+    </p>
+  </details>
 </div>
